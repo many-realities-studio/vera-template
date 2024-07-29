@@ -16,7 +16,6 @@ public class CSVWriter : MonoBehaviour
 
     public void Awake()
     {
-        // Add three simple columns: timestamp, event, and data
         if (Instance == null)
         {
             Instance = this;
@@ -29,7 +28,6 @@ public class CSVWriter : MonoBehaviour
         CreateEntry(1, "Test", new { test = "test" });
     }
 
-    // Sends the CSV to the server via a post request
     public void SubmitCSV()
     {
         StartCoroutine(SubmitCSVCoroutine());
@@ -59,7 +57,6 @@ public class CSVWriter : MonoBehaviour
 
     public void ClearFiles()
     {
-        // Delete all csv files in the directory
         DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
         foreach (FileInfo file in di.GetFiles())
         {
@@ -70,7 +67,6 @@ public class CSVWriter : MonoBehaviour
         }
     }
 
-    // Initialize the CSV file with columns
     public void Initialize()
     {
         participant_UUID = Guid.NewGuid().ToString();
@@ -95,7 +91,6 @@ public class CSVWriter : MonoBehaviour
         Debug.Log("CSV File created and saved at " + filePath);
     }
 
-    // Create a new entry in the CSV file
     public void CreateEntry(params object[] values)
     {
         if (values.Length != columns.Count)

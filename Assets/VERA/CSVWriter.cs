@@ -35,7 +35,7 @@ public class CSVWriter : MonoBehaviour
       Initialize(columns);
     }
     public void CreateCSV() {
-      if(filePath) {
+      if(filePath != undefined) {
 
       // Generate a participant UDID
         participant_UUID = Guid.NewGuid().ToString();

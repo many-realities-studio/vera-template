@@ -100,12 +100,6 @@ public class CSVWriter : MonoBehaviour
         {
             columns.Clear();
             List<string> columnNames = new List<string>();
-            if(columnDefinition.Contains("ts") == false) {
-            columnDefinition.Add("ts", CSVColumnDefinition.DataType.Timestamp);
-            }
-            if(columnDefinition.Contains("eventId") == false) {
-            columnNames.Add("eventId", CSVColumnDefinition.DataType.Number);
-            }
             foreach (var column in columnDefinition.columns)
             {
                 Debug.Log("Adding in column " + column.name);

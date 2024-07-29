@@ -35,10 +35,12 @@ public class CSVWriter : MonoBehaviour
       Initialize();
     }
     public void CreateCSV() {
+      if(filePath) {
+
       // Generate a participant UDID
         participant_UUID = Guid.NewGuid().ToString();
-        filePath = Path.Combine(Application.persistentDataPath, study_UUID  +"-"+participant_UUID+ ".csv");
         File.Create(filePath);
+      }
     }
     // Sends the CSV to the server via a post request
     public void SubmitCSV()

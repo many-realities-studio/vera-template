@@ -8,9 +8,10 @@ using UnityEngine.Networking;
 public class CSVWriter : MonoBehaviour
 {
     public string filePath;
-    private static List<Column> columns = new List<Column>();
+    private List<Column> columns = new List<Column>();
     public string study_UUID;
     public string participant_UUID;
+    public static CSVWriter instance;
 
     [Serializable]
     public class Column
@@ -33,6 +34,9 @@ public class CSVWriter : MonoBehaviour
     }
     public void Awake() {
       Initialize(columns);
+      if(instance == null) {
+        instance = this;
+      }
     }
     public void CreateCSV() {
       if(filePath != null) {

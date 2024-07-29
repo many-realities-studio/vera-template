@@ -73,6 +73,18 @@ public class CSVWriter : MonoBehaviour
         }
     }
 
+    public void ClearFiles() {
+      // Delete all csv files in the directory
+      DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
+      foreach (FileInfo file in di.GetFiles())
+      {
+          if (file.Extension == ".csv")
+          {
+              file.Delete();
+          }
+      }
+    }
+
     // Initialize the CSV file with columns
     public void Initialize(List<Column> columnDefinitions)
     {

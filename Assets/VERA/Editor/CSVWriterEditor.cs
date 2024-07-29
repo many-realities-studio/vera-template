@@ -34,6 +34,18 @@ public class CSVWriterEditor : Editor
             {
                 csvWriter.columnDefinition.columns.Add(new CSVColumnDefinition.Column());
             }
+
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Simulate Entry"))
+            {
+                csvWriter.SimulateEntry();
+            }
+
+            if (GUILayout.Button("Submit CSV"))
+            {
+                csvWriter.SubmitCSV();
+            }
         }
 
         if (GUI.changed)

@@ -40,17 +40,17 @@ public class CSVWriter : MonoBehaviour
     // Sends the CSV to the server via a post request
     public void SubmitCSV()
     {
+        StartCoroutine(SubmitCSVCoroutine());
+    }
+
+    private IEnumerator SubmitCSVCoroutine()
+    {
         string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
         string url = "http://sherlock.gaim.ucf.edu/api/" + study_UUID + "/testudid";
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
         form.AddBinaryData("file", File.ReadAllBytes(path), study_UUID + ".csv", "text/csv");
         WWW www = new WWW(url, form);
-        StartCoroutine(WaitForRequest(www));
-    }
-
-    private IEnumerator WaitForRequest(WWW www)
-    {
         yield return www;
 
         // check for errors

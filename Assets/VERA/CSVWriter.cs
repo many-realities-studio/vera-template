@@ -108,7 +108,7 @@ public class CSVWriter : MonoBehaviour
                 columns.Add(column);
                 columnNames.Add(column.name);
             }
-
+            Debug.Log(columnNames);
             writer.WriteLine(string.Join(",", columnNames));
         }
         Debug.Log("CSV File created and saved at " + filePath);

@@ -51,7 +51,7 @@ public class CSVWriter : MonoBehaviour
         
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
-        form.AddBinaryData("file", fileData, study_UUID + ".csv", "text/csv");
+        form.AddBinaryData("file", fileData, study_UUID+"-"+participant_UUID + ".csv", "text/csv");
 
         UnityWebRequest www = UnityWebRequest.Post(url, form);
         

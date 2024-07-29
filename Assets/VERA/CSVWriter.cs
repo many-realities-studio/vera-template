@@ -121,7 +121,7 @@ public class CSVWriter : MonoBehaviour
         }
 
         List<string> entry = new List<string>();
-
+        entry.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         for (int i = 0; i < values.Length; i++)
         {
             object value = values[i];

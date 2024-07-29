@@ -62,7 +62,6 @@ public class CSVWriter : MonoBehaviour
         form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
 
         // Add auth header 
-        form.headers["Authorization"] = "Bearer " + API_KEY;
         UnityWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
         UnityWebRequest www = UnityWebRequest.Post(url, form);
         yield return www.SendWebRequest();

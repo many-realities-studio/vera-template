@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 public class CSVWriter : MonoBehaviour
 {
-    private static string filePath;
+    public string filePath;
     private static List<Column> columns = new List<Column>();
     public string study_UUID;
     public string participant_UUID;
@@ -41,8 +41,8 @@ public class CSVWriter : MonoBehaviour
     public void CreateCSV() {
       // Generate a participant UDID
         participant_UUID = Guid.NewGuid().ToString();
-        string path = Path.Combine(Application.persistentDataPath, study_UUID  +"-"+participant_UUID+ ".csv");
-        File.Create(path);
+        filePath = Path.Combine(Application.persistentDataPath, study_UUID  +"-"+participant_UUID+ ".csv");
+        File.Create(filename);
     }
     // Sends the CSV to the server via a post request
     public void SubmitCSV()

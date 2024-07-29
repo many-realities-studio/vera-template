@@ -12,12 +12,12 @@ public class CSVWriterEditor : Editor
 
         if (GUILayout.Button("Save CSV"))
         {
-            csvWriter.SaveCSV();
+            csvWriter.instance.SaveCSV();
         }
 
         if (GUILayout.Button("Submit CSV"))
         {
-            csvWriter.SubmitCSV();
+            csvWriter.instance.SubmitCSV();
         }
     }
 }

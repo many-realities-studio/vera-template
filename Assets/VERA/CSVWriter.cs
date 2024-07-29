@@ -53,7 +53,7 @@ public class CSVWriter : MonoBehaviour
 
     private IEnumerator SubmitCSVCoroutine()
     {
-        string url = "https://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
+        string url = "https://sherlock.gaim.ucf.edu/api/players/log/" + study_UUID + "/" + participant_UUID;
         byte[] fileData = File.ReadAllBytes(filePath);
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);

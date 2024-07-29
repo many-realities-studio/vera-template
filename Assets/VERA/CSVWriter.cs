@@ -10,6 +10,7 @@ public class CSVWriter : MonoBehaviour
     private static string filePath;
     private static List<Column> columns = new List<Column>();
     public string study_UUID;
+    public string participant_UUID;
 
     [Serializable]
     public class Column
@@ -37,7 +38,12 @@ public class CSVWriter : MonoBehaviour
         string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
         File.Move(filePath, path);
     }
-
+    public void CreateCSV() {
+      // Generate a participant UDID
+        participant_UUID = Guid.NewGuid().ToString();
+        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+        File.Create(path);
+    }
     // Sends the CSV to the server via a post request
     public void SubmitCSV()
     {

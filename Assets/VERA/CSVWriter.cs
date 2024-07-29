@@ -44,11 +44,10 @@ public class CSVWriter : MonoBehaviour
     }
 
     private IEnumerator SubmitCSVCoroutine()
-    {
-        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+    {;
         string url = "http://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
         
-        byte[] fileData = File.ReadAllBytes(path);
+        byte[] fileData = File.ReadAllBytes(filePath);
         
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);

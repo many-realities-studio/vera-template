@@ -74,6 +74,11 @@ public class CSVWriterEditor : Editor
                 csvWriter.SubmitCSV();
             }
 
+            if (GUILayout.Button("Clear Files"))
+            {
+                csvWriter.SubmitCSV();
+            }
+
             serializedObject.ApplyModifiedProperties();
         }
 

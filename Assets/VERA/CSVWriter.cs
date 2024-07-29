@@ -9,6 +9,7 @@ public class CSVWriter : MonoBehaviour
 {
     public string filePath;
     private List<CSVColumnDefinition.Column> columns = new List<CSVColumnDefinition.Column>();
+    public string API_KEY;
     public string study_UUID;
     public string participant_UUID;
     public static CSVWriter Instance;
@@ -60,6 +61,8 @@ public class CSVWriter : MonoBehaviour
         form.AddField("participant_UUID", participant_UUID);
         form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
 
+        // Add auth header 
+        form.headers["Authorization"] = "Bearer " + API_KEY;
         UnityWebRequest www = UnityWebRequest.Post(url, form);
         yield return www.SendWebRequest();
 

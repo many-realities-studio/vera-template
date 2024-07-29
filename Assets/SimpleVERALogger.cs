@@ -29,6 +29,15 @@ public class CSVWriter : MonoBehaviour
         JSON
     }
 
+    // Add an interface button to trigger submitting csv file
+    void OnGUI()
+    {
+        if (GUI.Button(new Rect(10, 10, 150, 100), "Submit CSV"))
+        {
+            SubmitCSV();
+        }
+    }
+
     // Initialize the CSV file with columns
     public static void Initialize(string fileName, ArrayList columnDefinitions)
     {

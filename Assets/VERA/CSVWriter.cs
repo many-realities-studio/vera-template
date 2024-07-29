@@ -8,46 +8,27 @@ using UnityEngine.Networking;
 public class CSVWriter : MonoBehaviour
 {
     public string filePath;
-    private List<Column> columns = new List<Column>();
+    private List<CSVColumnDefinition.Column> columns = new List<CSVColumnDefinition.Column>();
     public string study_UUID;
     public string participant_UUID;
     public static CSVWriter Instance;
+    public CSVColumnDefinition columnDefinition;
 
-    [Serializable]
-    public class Column
+    public void Awake()
     {
-        public string name;
-        public DataType type;
-
-        public Column(string name, DataType type)
+        // Add three simple columns: timestamp, event, and data
+        if (Instance == null)
         {
-            this.name = name;
-            this.type = type;
+            Instance = this;
         }
+        Initialize();
     }
 
-    public enum DataType
+    public void SimulateEntry()
     {
-        Number,
-        String,
-        JSON
-    }
-    public void Awake() {
-      // Add three simple columns: timestamp, event, and data
-      if(Instance == null) {
-        Instance = this;
-      }
-      var columnDefinitions = new List<Column> {
-        new Column("timestamp", DataType.Number),
-        new Column("event", DataType.String),
-        new Column("data", DataType.JSON)
-      };
-      Initialize(columnDefinitions);
+        CreateEntry(1, "Test", new { test = "test" });
     }
 
-    public void SimulateEntry() {
-      CreateEntry(1, "Test", new { test = "test" });
-    }
     // Sends the CSV to the server via a post request
     public void SubmitCSV()
     {
@@ -55,18 +36,15 @@ public class CSVWriter : MonoBehaviour
     }
 
     private IEnumerator SubmitCSVCoroutine()
-    {;
+    {
         string url = "http://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
-        
         byte[] fileData = File.ReadAllBytes(filePath);
-        
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
         form.AddField("participant_UUID", participant_UUID);
-        form.AddBinaryData("file", fileData, study_UUID+"-"+participant_UUID + ".csv", "text/csv");
+        form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
 
         UnityWebRequest www = UnityWebRequest.Post(url, form);
-        
         yield return www.SendWebRequest();
 
         if (www.result == UnityWebRequest.Result.Success)
@@ -79,36 +57,37 @@ public class CSVWriter : MonoBehaviour
         }
     }
 
-    public void ClearFiles() {
-      // Delete all csv files in the directory
-      DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
-      foreach (FileInfo file in di.GetFiles())
-      {
-          if (file.Extension == ".csv")
-          {
-              file.Delete();
-          }
-      }
+    public void ClearFiles()
+    {
+        // Delete all csv files in the directory
+        DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
+        foreach (FileInfo file in di.GetFiles())
+        {
+            if (file.Extension == ".csv")
+            {
+                file.Delete();
+            }
+        }
     }
 
     // Initialize the CSV file with columns
-    public void Initialize(List<Column> columnDefinitions)
+    public void Initialize()
     {
         participant_UUID = Guid.NewGuid().ToString();
-        filePath = Path.Combine(Application.persistentDataPath, study_UUID+"-"+participant_UUID + ".csv");
+        filePath = Path.Combine(Application.persistentDataPath, study_UUID + "-" + participant_UUID + ".csv");
 
         using (StreamWriter writer = new StreamWriter(filePath))
         {
             columns.Clear();
             List<string> columnNames = new List<string>();
 
-            foreach (object obj in columnDefinitions)
+            foreach (var column in columnDefinition.columns)
             {
-                Column column = (Column)obj;
                 Debug.Log("Adding in column " + column.name);
                 columns.Add(column);
                 columnNames.Add(column.name);
             }
+
             Debug.Log(columnNames);
             writer.WriteLine(string.Join(",", columnNames));
             writer.Flush();
@@ -130,17 +109,17 @@ public class CSVWriter : MonoBehaviour
         for (int i = 0; i < values.Length; i++)
         {
             object value = values[i];
-            Column column = columns[i];
+            CSVColumnDefinition.Column column = columns[i];
 
             switch (column.type)
             {
-                case DataType.Number:
+                case CSVColumnDefinition.DataType.Number:
                     entry.Add(Convert.ToString(value));
                     break;
-                case DataType.String:
+                case CSVColumnDefinition.DataType.String:
                     entry.Add($"\"{value.ToString()}\"");
                     break;
-                case DataType.JSON:
+                case CSVColumnDefinition.DataType.JSON:
                     entry.Add($"\"{JsonUtility.ToJson(value)}\"");
                     break;
                 default:

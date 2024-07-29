@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class CSVWriter : MonoBehaviour
 {
@@ -47,20 +48,24 @@ public class CSVWriter : MonoBehaviour
     {
         string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
         string url = "http://sherlock.gaim.ucf.edu/api/" + study_UUID + "/testudid";
+        
+        byte[] fileData = File.ReadAllBytes(path);
+        
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
-        form.AddBinaryData("file", File.ReadAllBytes(path), study_UUID + ".csv", "text/csv");
-        WWW www = new WWW(url, form);
-        yield return www;
+        form.AddBinaryData("file", fileData, study_UUID + ".csv", "text/csv");
 
-        // check for errors
-        if (www.error == null)
+        UnityWebRequest www = UnityWebRequest.Post(url, form);
+        
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("WWW Ok!: " + www.text);
+            Debug.Log("Upload complete! Response: " + www.downloadHandler.text);
         }
         else
         {
-            Debug.Log("WWW Error: " + www.error);
+            Debug.LogError("Upload failed: " + www.error);
         }
     }
 

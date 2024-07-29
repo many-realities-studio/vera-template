@@ -9,11 +9,11 @@ public class CSVWriter : MonoBehaviour
 {
     public string filePath;
     private List<CSVColumnDefinition.Column> columns = new List<CSVColumnDefinition.Column>();
-    public string API_KEY;
     public string study_UUID;
     public string participant_UUID;
     public static CSVWriter Instance;
     public CSVColumnDefinition columnDefinition;
+    public string API_KEY; // Add a public field to set the API key in the Inspector
 
     public void Awake()
     {
@@ -32,9 +32,6 @@ public class CSVWriter : MonoBehaviour
         {
             switch (column.type)
             {
-                case CSVColumnDefinition.DataType.Timestamp:
-                    fakeData.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                    break;
                 case CSVColumnDefinition.DataType.Number:
                     fakeData.Add(UnityEngine.Random.Range(0, 100));
                     break;
@@ -57,16 +54,16 @@ public class CSVWriter : MonoBehaviour
 
     private IEnumerator SubmitCSVCoroutine()
     {
-        string url = "https://sherlock.gaim.ucf.edu/api/logs/" + study_UUID + "/" + participant_UUID;
+        string url = "http://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
         byte[] fileData = File.ReadAllBytes(filePath);
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
         form.AddField("participant_UUID", participant_UUID);
         form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
 
-        // Add auth header 
         UnityWebRequest www = UnityWebRequest.Post(url, form);
         www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+
         yield return www.SendWebRequest();
 
         if (www.result == UnityWebRequest.Result.Success)
@@ -84,7 +81,7 @@ public class CSVWriter : MonoBehaviour
         DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
         foreach (FileInfo file in di.GetFiles())
         {
-            if (file.Extension == ".csv" && !file.Name.Contains(study_UUID))
+            if (file.Extension == ".csv")
             {
                 file.Delete();
             }
@@ -100,6 +97,7 @@ public class CSVWriter : MonoBehaviour
         {
             columns.Clear();
             List<string> columnNames = new List<string>();
+
             foreach (var column in columnDefinition.columns)
             {
                 Debug.Log("Adding in column " + column.name);
@@ -108,7 +106,7 @@ public class CSVWriter : MonoBehaviour
             }
 
             Debug.Log(columnNames);
-            writer.WriteLine(string.Join(",", columnNames));
+            writer.WriteLine(string.join(",", columnNames));
             writer.Flush();
         }
         Debug.Log("CSV File created and saved at " + filePath);
@@ -123,6 +121,7 @@ public class CSVWriter : MonoBehaviour
         }
 
         List<string> entry = new List<string>();
+
         for (int i = 0; i < values.Length; i++)
         {
             object value = values[i];
@@ -130,9 +129,6 @@ public class CSVWriter : MonoBehaviour
 
             switch (column.type)
             {
-                case CSVColumnDefinition.DataType.Timestamp:
-                    entry.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                    break;
                 case CSVColumnDefinition.DataType.Number:
                     entry.Add(Convert.ToString(value));
                     break;
@@ -162,6 +158,11 @@ public class CSVWriter : MonoBehaviour
             columnDefinition = ScriptableObject.CreateInstance<CSVColumnDefinition>();
             string assetPath = $"Assets/{study_UUID}_ColumnDefinition.asset";
             UnityEditor.AssetDatabase.CreateAsset(columnDefinition, assetPath);
+
+            // Add required columns
+            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "ts", type = CSVColumnDefinition.DataType.String });
+            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "eventId", type = CSVColumnDefinition.DataType.String });
+
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             UnityEditor.EditorUtility.FocusProjectWindow();

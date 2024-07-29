@@ -25,7 +25,25 @@ public class CSVWriter : MonoBehaviour
 
     public void SimulateEntry()
     {
-        CreateEntry(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "TestEvent", new { test = "testData" });
+        List<object> fakeData = new List<object>();
+
+        foreach (var column in columnDefinition.columns)
+        {
+            switch (column.type)
+            {
+                case CSVColumnDefinition.DataType.Number:
+                    fakeData.Add(UnityEngine.Random.Range(0, 100));
+                    break;
+                case CSVColumnDefinition.DataType.String:
+                    fakeData.Add("FakeString");
+                    break;
+                case CSVColumnDefinition.DataType.JSON:
+                    fakeData.Add(new { key = "value" });
+                    break;
+            }
+        }
+
+        CreateEntry(fakeData.ToArray());
     }
 
     public void SubmitCSV()

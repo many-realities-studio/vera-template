@@ -34,8 +34,8 @@ public class CSVWriter : MonoBehaviour
     }
     public void Awake() {
       Initialize(columns);
-      if(instance == null) {
-        instance = this;
+      if(Instance == null) {
+        Instance = this;
       }
     }
     public void CreateCSV() {

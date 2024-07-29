@@ -32,7 +32,7 @@ public class CSVWriter : MonoBehaviour
         JSON
     }
     public void Awake() {
-      Initialize();
+      Initialize(columns);
     }
     public void CreateCSV() {
       if(filePath) {

@@ -95,7 +95,7 @@ public class CSVWriter : MonoBehaviour
     }
 
     // Create a new entry in the CSV file
-    public static void CreateEntry(params object[] values)
+    public void CreateEntry(params object[] values)
     {
         if (values.Length != columns.Count)
         {

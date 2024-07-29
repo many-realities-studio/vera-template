@@ -156,7 +156,7 @@ public class CSVWriter : MonoBehaviour
         if (columnDefinition == null)
         {
             columnDefinition = ScriptableObject.CreateInstance<CSVColumnDefinition>();
-            string assetPath = $"Assets/{study_UUID}_ColumnDefinition.asset";
+            string assetPath = $"Assets/VERA/{study_UUID}_ColumnDefinition.asset";
             UnityEditor.AssetDatabase.CreateAsset(columnDefinition, assetPath);
 
             // Add required columns

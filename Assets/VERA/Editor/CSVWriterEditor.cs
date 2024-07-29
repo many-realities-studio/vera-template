@@ -10,9 +10,9 @@ public class CSVWriterEditor : Editor
 
         CSVWriter csvWriter = (CSVWriter)target;
 
-        if (GUILayout.Button("Save CSV"))
+        if (GUILayout.Button("Simulate Entry"))
         {
-            CSVWriter.Instance.SaveCSV();
+            csvWriter.SimulateEntry();
         }
 
         if (GUILayout.Button("Submit CSV"))

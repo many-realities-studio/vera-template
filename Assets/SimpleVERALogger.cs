@@ -29,6 +29,25 @@ public class CSVWriter : MonoBehaviour
         JSON
     }
 
+    // Saves the CSV file to the applciation directory.
+    public void SaveCSV()
+    {
+        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+        File.Move(filePath, path);
+    }
+
+    // Sends the CSV to the server via a post request
+    public void SubmitCSV()
+    {
+        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+        string url = "http://sherlock.gaim.ucf.edu/api/";
+        WWWForm form = new WWWForm();
+        form.AddField("study_UUID", study_UUID);
+        form.AddBinaryData("file", File.ReadAllBytes(path), study_UUID + ".csv", "text/csv");
+        WWW www = new WWW(url, form);
+        StartCoroutine(WaitForRequest(www));
+    }
+
     // Add an interface button to trigger submitting csv file
     void OnGUI()
     {

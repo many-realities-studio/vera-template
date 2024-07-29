@@ -22,13 +22,24 @@ public class CSVWriterEditor : Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Column Definitions", EditorStyles.boldLabel);
 
-            foreach (var column in csvWriter.columnDefinition.columns)
+            EditorGUI.indentLevel++;
+
+            for (int i = 0; i < csvWriter.columnDefinition.columns.Count; i++)
             {
-                EditorGUILayout.BeginHorizontal();
-                column.name = EditorGUILayout.TextField("Name", column.name);
-                column.type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", column.type);
-                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginVertical(GUI.skin.box);
+                csvWriter.columnDefinition.columns[i].name = EditorGUILayout.TextField("Name", csvWriter.columnDefinition.columns[i].name);
+                csvWriter.columnDefinition.columns[i].type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", csvWriter.columnDefinition.columns[i].type);
+
+                if (GUILayout.Button("Remove Column"))
+                {
+                    csvWriter.columnDefinition.columns.RemoveAt(i);
+                    i--; // Adjust index to account for removed element
+                }
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space();
             }
+
+            EditorGUI.indentLevel--;
 
             if (GUILayout.Button("Add Column"))
             {

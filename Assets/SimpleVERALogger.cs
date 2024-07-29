@@ -8,7 +8,7 @@ public class CSVWriter : MonoBehaviour
 {
     private static string filePath;
     private static List<Column> columns = new List<Column>();
-
+    public string study_UUID;
     [Serializable]
     public class Column
     {

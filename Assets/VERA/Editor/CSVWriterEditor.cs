@@ -10,7 +10,14 @@ public class CSVWriterEditor : Editor
 
         CSVWriter csvWriter = (CSVWriter)target;
 
-        if (csvWriter.columnDefinition != null)
+        if (csvWriter.columnDefinition == null)
+        {
+            if (GUILayout.Button("Create Column Definition"))
+            {
+                csvWriter.CreateColumnDefinition();
+            }
+        }
+        else
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Column Definitions", EditorStyles.boldLabel);

@@ -74,7 +74,7 @@ public class CSVWriter : MonoBehaviour
     }
 
     // Initialize the CSV file with columns
-    public void Initialize(ArrayList columnDefinitions)
+    public void Initialize(List<Column> columnDefinitions)
     {
         filePath = Path.Combine(Application.persistentDataPath, study_UUID+"-"+participant_UUID + ".csv");
 

@@ -104,8 +104,8 @@ public class CSVWriter : MonoBehaviour
 
             foreach (object obj in columnDefinitions)
             {
-              Debug.Log("Adding in column " + column.name);
                 Column column = (Column)obj;
+                Debug.Log("Adding in column " + column.name);
                 columns.Add(column);
                 columnNames.Add(column.name);
             }

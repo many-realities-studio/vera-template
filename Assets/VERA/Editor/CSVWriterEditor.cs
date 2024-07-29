@@ -39,7 +39,7 @@ public class CSVWriterEditor : Editor
                 EditorGUILayout.BeginVertical(GUI.skin.box);
                 EditorGUILayout.LabelField($"Column {i + 1}", EditorStyles.boldLabel);
 
-                EditorGUILayout.TextField("Name", column.name);
+                column.name = EditorGUILayout.TextField("Name", column.name);
                 column.type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", column.type);
 
                 if (column.name != "ts" && column.name != "eventId")

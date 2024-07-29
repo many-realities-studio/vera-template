@@ -81,7 +81,7 @@ public class CSVWriter : MonoBehaviour
         DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
         foreach (FileInfo file in di.GetFiles())
         {
-            if (file.Extension == ".csv")
+            if (file.Extension == ".csv" && !file.Name.Contains(study_UUID))
             {
                 file.Delete();
             }

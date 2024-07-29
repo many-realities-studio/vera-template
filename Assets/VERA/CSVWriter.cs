@@ -166,7 +166,7 @@ public class CSVWriter : MonoBehaviour
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             UnityEditor.EditorUtility.FocusProjectWindow();
-            UnityEditor.Selection.activeObject = columnDefinition;
+            // UnityEditor.Selection.activeObject = columnDefinition;
         }
     }
 #endif

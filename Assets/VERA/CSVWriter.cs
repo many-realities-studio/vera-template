@@ -100,6 +100,7 @@ public class CSVWriter : MonoBehaviour
 
             writer.WriteLine(string.Join(",", columnNames));
         }
+        SaveCSV();
     }
 
     // Create a new entry in the CSV file

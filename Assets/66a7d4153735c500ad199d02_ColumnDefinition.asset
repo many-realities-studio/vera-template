@@ -15,5 +15,5 @@ MonoBehaviour:
   columns:
   - name: Timestamp
     type: 0
-  - name: Timestamp
-    type: 0
+  - name: Data
+    type: 2

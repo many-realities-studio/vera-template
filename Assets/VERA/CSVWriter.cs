@@ -42,7 +42,7 @@ public class CSVWriter : MonoBehaviour
         new Column("event", DataType.String),
         new Column("data", DataType.JSON)
       };
-      Initialize(columns);
+      Initialize(columnDefinitions);
     }
 
     public void SimulateEntry() {

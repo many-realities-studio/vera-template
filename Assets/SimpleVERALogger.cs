@@ -40,7 +40,7 @@ public class CSVWriter : MonoBehaviour
     public void SubmitCSV()
     {
         string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
-        string url = "http://sherlock.gaim.ucf.edu/api/"+study_UUID+"testudid";
+        string url = "http://sherlock.gaim.ucf.edu/api/"+study_UUID+"/testudid";
         WWWForm form = new WWWForm();
         form.AddField("study_UUID", study_UUID);
         form.AddBinaryData("file", File.ReadAllBytes(path), study_UUID + ".csv", "text/csv");

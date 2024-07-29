@@ -25,7 +25,7 @@ public class CSVWriter : MonoBehaviour
 
     public void SimulateEntry()
     {
-        CreateEntry(1, "Test", new { test = "test" });
+        CreateEntry(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "TestEvent", new { test = "testData" });
     }
 
     public void SubmitCSV()

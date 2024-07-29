@@ -88,29 +88,30 @@ public class CSVWriter : MonoBehaviour
         }
     }
 
-    public void Initialize()
-    {
-        participant_UUID = Guid.NewGuid().ToString();
-        filePath = Path.Combine(Application.persistentDataPath, study_UUID + "-" + participant_UUID + ".csv");
+public void Initialize()
+{
+    participant_UUID = Guid.NewGuid().ToString();
+    filePath = Path.Combine(Application.persistentDataPath, study_UUID + "-" + participant_UUID + ".csv");
 
-        using (StreamWriter writer = new StreamWriter(filePath))
+      using (StreamWriter writer = new StreamWriter(filePath))
+      {
+        columns.Clear();
+        List<string> columnNames = new List<string>();
+
+        foreach (var column in columnDefinition.columns)
         {
-            columns.Clear();
-            List<string> columnNames = new List<string>();
-
-            foreach (var column in columnDefinition.columns)
-            {
-                Debug.Log("Adding in column " + column.name);
-                columns.Add(column);
-                columnNames.Add(column.name);
-            }
-
-            Debug.Log(columnNames);
-            writer.WriteLine(string.Join(",", columnNames));
-            writer.Flush();
+            Debug.Log("Adding in column " + column.name);
+            columns.Add(column);
+            columnNames.Add(column.name);
         }
-        Debug.Log("CSV File created and saved at " + filePath);
+
+        Debug.Log(columnNames);
+        writer.WriteLine(string.Join(",", columnNames));
+        writer.Flush();
+      }
+      Debug.Log("CSV File created and saved at " + filePath);
     }
+
 
     public void CreateEntry(params object[] values)
     {

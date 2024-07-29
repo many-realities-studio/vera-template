@@ -32,6 +32,9 @@ public class CSVWriter : MonoBehaviour
         {
             switch (column.type)
             {
+                case CSVColumnDefinition.DataType.Timestamp:
+                    fakeData.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    break;
                 case CSVColumnDefinition.DataType.Number:
                     fakeData.Add(UnityEngine.Random.Range(0, 100));
                     break;
@@ -130,7 +133,7 @@ public class CSVWriter : MonoBehaviour
             switch (column.type)
             {
                 case CSVColumnDefinition.DataType.Timestamp:
-                    entry.Add(Convert.ToString(value));
+                    entry.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     break;
                 case CSVColumnDefinition.DataType.Number:
                     entry.Add(Convert.ToString(value));

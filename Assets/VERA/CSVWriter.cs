@@ -37,7 +37,7 @@ public class CSVWriter : MonoBehaviour
       if(Instance == null) {
         Instance = this;
       }
-      columns = new List<Column> {
+      var columnDefinitions = new List<Column> {
         new Column("timestamp", DataType.Number),
         new Column("event", DataType.String),
         new Column("data", DataType.JSON)

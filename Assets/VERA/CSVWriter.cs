@@ -97,7 +97,8 @@ public class CSVWriter : MonoBehaviour
         {
             columns.Clear();
             List<string> columnNames = new List<string>();
-
+            columnNames.Add("ts");
+            columnNames.Add("eventId");
             foreach (var column in columnDefinition.columns)
             {
                 Debug.Log("Adding in column " + column.name);

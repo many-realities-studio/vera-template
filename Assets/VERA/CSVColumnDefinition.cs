@@ -1,18 +1,23 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CSVColumnDefinition : MonoBehaviour
+[CreateAssetMenu(fileName = "CSVColumnDefinition", menuName = "ScriptableObjects/CSVColumnDefinition", order = 1)]
+public class CSVColumnDefinition : ScriptableObject
 {
-    // Start is called before the first frame update
-    void Start()
+    [Serializable]
+    public class Column
     {
-        
+        public string name;
+        public DataType type;
     }
 
-    // Update is called once per frame
-    void Update()
+    public enum DataType
     {
-        
+        Number,
+        String,
+        JSON
     }
+
+    public List<Column> columns = new List<Column>();
 }

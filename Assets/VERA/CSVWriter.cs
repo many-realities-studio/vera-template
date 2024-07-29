@@ -63,6 +63,7 @@ public class CSVWriter : MonoBehaviour
 
         // Add auth header 
         form.headers["Authorization"] = "Bearer " + API_KEY;
+        UnityWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
         UnityWebRequest www = UnityWebRequest.Post(url, form);
         yield return www.SendWebRequest();
 

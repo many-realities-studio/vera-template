@@ -128,4 +128,20 @@ public class CSVWriter : MonoBehaviour
             writer.WriteLine(string.Join(",", entry));
         }
     }
+
+#if UNITY_EDITOR
+    public void CreateColumnDefinition()
+    {
+        if (columnDefinition == null)
+        {
+            columnDefinition = ScriptableObject.CreateInstance<CSVColumnDefinition>();
+            string assetPath = "Assets/CSVColumnDefinition.asset";
+            UnityEditor.AssetDatabase.CreateAsset(columnDefinition, assetPath);
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+            UnityEditor.EditorUtility.FocusProjectWindow();
+            UnityEditor.Selection.activeObject = columnDefinition;
+        }
+    }
+#endif
 }

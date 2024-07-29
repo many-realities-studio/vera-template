@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class CSVWriter : MonoBehaviour
+public class SimpleVERALogger : MonoBehaviour
 {
     private static string filePath;
     private static List<Column> columns = new List<Column>();

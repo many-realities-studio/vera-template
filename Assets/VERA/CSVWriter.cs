@@ -35,13 +35,13 @@ public class CSVWriter : MonoBehaviour
     // Saves the CSV file to the application directory.
     public void SaveCSV()
     {
-        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+        string path = Path.Combine(Application.persistentDataPath, study_UUID +"-"+participant_UUID+ ".csv");
         File.Move(filePath, path);
     }
     public void CreateCSV() {
       // Generate a participant UDID
         participant_UUID = Guid.NewGuid().ToString();
-        string path = Path.Combine(Application.persistentDataPath, study_UUID + ".csv");
+        string path = Path.Combine(Application.persistentDataPath, study_UUID  +"-"+participant_UUID+ ".csv");
         File.Create(path);
     }
     // Sends the CSV to the server via a post request

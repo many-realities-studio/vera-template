@@ -17,7 +17,7 @@ public class CSVWriterEditor : Editor
 
         if (GUILayout.Button("Submit CSV"))
         {
-            CSVWriter.SubmitCSV();
+            csvWriter.SubmitCSV();
         }
     }
 }

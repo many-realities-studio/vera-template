@@ -1,5 +1,5 @@
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(CSVWriter))]
 public class CSVWriterEditor : Editor
@@ -10,18 +10,28 @@ public class CSVWriterEditor : Editor
 
         CSVWriter csvWriter = (CSVWriter)target;
 
-        if (GUILayout.Button("Simulate Entry"))
+        if (csvWriter.columnDefinition != null)
         {
-            csvWriter.SimulateEntry();
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Column Definitions", EditorStyles.boldLabel);
+
+            foreach (var column in csvWriter.columnDefinition.columns)
+            {
+                EditorGUILayout.BeginHorizontal();
+                column.name = EditorGUILayout.TextField("Name", column.name);
+                column.type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", column.type);
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (GUILayout.Button("Add Column"))
+            {
+                csvWriter.columnDefinition.columns.Add(new CSVColumnDefinition.Column());
+            }
         }
 
-        if (GUILayout.Button("Submit CSV"))
+        if (GUI.changed)
         {
-            csvWriter.SubmitCSV();
-        }
-        if (GUILayout.Button("Clear Files"))
-        {
-            csvWriter.ClearFiles();
+            EditorUtility.SetDirty(csvWriter.columnDefinition);
         }
     }
 }

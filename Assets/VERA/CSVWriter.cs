@@ -11,7 +11,7 @@ public class CSVWriter : MonoBehaviour
     private List<Column> columns = new List<Column>();
     public string study_UUID;
     public string participant_UUID;
-    public static CSVWriter instance;
+    public static CSVWriter Instance;
 
     [Serializable]
     public class Column

@@ -76,7 +76,7 @@ public class CSVWriter : MonoBehaviour
     // Initialize the CSV file with columns
     public void Initialize(string fileName, ArrayList columnDefinitions)
     {
-        filePath = Path.Combine(Application.persistentDataPath, fileName);
+        filePath = Path.Combine(Application.persistentDataPath, study_UUID+"-"+participant_UUID + ".csv");
 
         using (StreamWriter writer = new StreamWriter(filePath))
         {

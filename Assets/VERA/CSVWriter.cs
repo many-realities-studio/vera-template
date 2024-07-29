@@ -122,7 +122,6 @@ public class CSVWriter : MonoBehaviour
         }
 
         List<string> entry = new List<string>();
-        entry.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         for (int i = 0; i < values.Length; i++)
         {
             object value = values[i];
@@ -130,6 +129,9 @@ public class CSVWriter : MonoBehaviour
 
             switch (column.type)
             {
+                case CSVColumnDefinition.DataType.Timestamp:
+                    entry.Add(Convert.ToString(value));
+                    break;
                 case CSVColumnDefinition.DataType.Number:
                     entry.Add(Convert.ToString(value));
                     break;

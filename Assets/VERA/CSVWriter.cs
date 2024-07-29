@@ -34,15 +34,15 @@ public class CSVWriter : MonoBehaviour
     }
     public void Awake() {
       // Add three simple columns: timestamp, event, and data
+      if(Instance == null) {
+        Instance = this;
+      }
       columns = new List<Column> {
         new Column("timestamp", DataType.Number),
         new Column("event", DataType.String),
         new Column("data", DataType.JSON)
       };
       Initialize(columns);
-      if(Instance == null) {
-        Instance = this;
-      }
     }
 
     public void SimulateEntry() {

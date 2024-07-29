@@ -111,7 +111,6 @@ public class CSVWriter : MonoBehaviour
             }
             Debug.Log(columnNames);
             writer.WriteLine(string.Join(",", columnNames));
-            writer.Close();
         }
         Debug.Log("CSV File created and saved at " + filePath);
     }

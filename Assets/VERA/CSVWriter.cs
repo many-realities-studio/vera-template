@@ -46,6 +46,10 @@ public class CSVWriter : MonoBehaviour
         File.Create(filePath);
       }
     }
+
+    public void SimulateEntry() {
+      CreateEntry(1, "Test", new { test = "test" });
+    }
     // Sends the CSV to the server via a post request
     public void SubmitCSV()
     {

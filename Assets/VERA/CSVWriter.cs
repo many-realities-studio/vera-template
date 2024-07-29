@@ -38,14 +38,6 @@ public class CSVWriter : MonoBehaviour
         Instance = this;
       }
     }
-    public void CreateCSV() {
-      if(filePath != null) {
-
-      // Generate a participant UDID
-        participant_UUID = Guid.NewGuid().ToString();
-        File.Create(filePath);
-      }
-    }
 
     public void SimulateEntry() {
       CreateEntry(1, "Test", new { test = "test" });

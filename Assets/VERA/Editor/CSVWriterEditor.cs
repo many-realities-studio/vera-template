@@ -19,5 +19,9 @@ public class CSVWriterEditor : Editor
         {
             csvWriter.SubmitCSV();
         }
+        if (GUILayout.Button("Clear Files"))
+        {
+            csvWriter.ClearFiles();
+        }
     }
 }

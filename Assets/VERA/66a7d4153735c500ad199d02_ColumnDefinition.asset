@@ -17,5 +17,5 @@ MonoBehaviour:
     type: 2
   - name: eventId
     type: 2
-  - name: 
+  - name: name
     type: 3

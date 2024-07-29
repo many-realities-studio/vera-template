@@ -33,6 +33,12 @@ public class CSVWriter : MonoBehaviour
         JSON
     }
     public void Awake() {
+      // Add three simple columns: timestamp, event, and data
+      columns = new List<Column> {
+        new Column("timestamp", DataType.Number),
+        new Column("event", DataType.String),
+        new Column("data", DataType.JSON)
+      };
       Initialize(columns);
       if(Instance == null) {
         Instance = this;

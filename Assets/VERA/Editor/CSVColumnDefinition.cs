@@ -1,18 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
-public class CSVColumnDefinition : MonoBehaviour
+[CustomEditor(typeof(CSVColumnDefinition))]
+public class CSVColumnDefinitionEditor : Editor
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void OnInspectorGUI()
     {
-        
-    }
+        DrawDefaultInspector();
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        CSVColumnDefinition columnDefinition = (CSVColumnDefinition)target;
+
+        if (GUILayout.Button("Add Column"))
+        {
+            columnDefinition.columns.Add(new CSVColumnDefinition.Column());
+        }
+
+        for (int i = 0; i < columnDefinition.columns.Count; i++)
+        {
+            EditorGUILayout.BeginHorizontal();
+            columnDefinition.columns[i].name = EditorGUILayout.TextField("Name", columnDefinition.columns[i].name);
+            columnDefinition.columns[i].type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", columnDefinition.columns[i].type);
+
+            if (GUILayout.Button("Remove"))
+            {
+                columnDefinition.columns.RemoveAt(i);
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        if (GUI.changed)
+        {
+            EditorUtility.SetDirty(columnDefinition);
+        }
     }
 }

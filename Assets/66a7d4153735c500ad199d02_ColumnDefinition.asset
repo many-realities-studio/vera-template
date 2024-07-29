@@ -12,8 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e490875681dccfc47bd4db3813ef95b7, type: 3}
   m_Name: 66a7d4153735c500ad199d02_ColumnDefinition
   m_EditorClassIdentifier: 
-  columns:
-  - name: Timestamp
-    type: 0
-  - name: Data
-    type: 2
+  columns: []

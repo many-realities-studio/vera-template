@@ -52,29 +52,58 @@ public class CSVWriter : MonoBehaviour
         StartCoroutine(SubmitCSVCoroutine());
     }
 
-    private IEnumerator SubmitCSVCoroutine()
+private IEnumerator SubmitCSVCoroutine()
+{
+    string url = "https://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
+
+    // Add a small delay before reading the file
+    yield return new WaitForSeconds(0.1f);
+
+    byte[] fileData = null;
+    bool fileReadSuccess = false;
+
+    // Retry mechanism to handle sharing violation
+    for (int i = 0; i < 3; i++)
     {
-        string url = "https://sherlock.gaim.ucf.edu/logs/" + study_UUID + "/" + participant_UUID;
-        byte[] fileData = File.ReadAllBytes(filePath);
-        WWWForm form = new WWWForm();
-        form.AddField("study_UUID", study_UUID);
-        form.AddField("participant_UUID", participant_UUID);
-        form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
-
-        UnityWebRequest www = UnityWebRequest.Post(url, form);
-        www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
-
-        yield return www.SendWebRequest();
-
-        if (www.result == UnityWebRequest.Result.Success)
+        try
         {
-            Debug.Log("Upload complete! Response: " + www.downloadHandler.text);
+            fileData = File.ReadAllBytes(filePath);
+            fileReadSuccess = true;
+            break;
         }
-        else
+        catch (IOException ex)
         {
-            Debug.LogError("Upload failed: " + www.error);
+            Debug.LogWarning($"Attempt {i + 1}: Failed to read file due to sharing violation. Retrying...");
+            yield return new WaitForSeconds(0.1f);
         }
     }
+
+    if (!fileReadSuccess)
+    {
+        Debug.LogError("Failed to read the file after multiple attempts.");
+        yield break;
+    }
+
+    WWWForm form = new WWWForm();
+    form.AddField("study_UUID", study_UUID);
+    form.AddField("participant_UUID", participant_UUID);
+    form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
+
+    UnityWebRequest www = UnityWebRequest.Post(url, form);
+    www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+
+    yield return www.SendWebRequest();
+
+    if (www.result == UnityWebRequest.Result.Success)
+    {
+        Debug.Log("Upload complete! Response: " + www.downloadHandler.text);
+    }
+    else
+    {
+        Debug.LogError("Upload failed: " + www.error);
+    }
+}
+
 
     public void ClearFiles()
     {

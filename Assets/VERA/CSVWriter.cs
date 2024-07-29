@@ -31,6 +31,9 @@ public class CSVWriter : MonoBehaviour
         String,
         JSON
     }
+    public void Awake() {
+      Initialize();
+    }
     public void CreateCSV() {
       // Generate a participant UDID
         participant_UUID = Guid.NewGuid().ToString();
@@ -69,7 +72,7 @@ public class CSVWriter : MonoBehaviour
     }
 
     // Initialize the CSV file with columns
-    public static void Initialize(string fileName, ArrayList columnDefinitions)
+    public void Initialize(string fileName, ArrayList columnDefinitions)
     {
         filePath = Path.Combine(Application.persistentDataPath, fileName);
 

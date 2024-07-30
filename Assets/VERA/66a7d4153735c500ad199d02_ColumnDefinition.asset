@@ -19,3 +19,5 @@ MonoBehaviour:
     type: 1
   - name: name
     type: 3
+  - name: Custom 1
+    type: 2

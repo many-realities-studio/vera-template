@@ -11,6 +11,8 @@ public class CSVWriter : MonoBehaviour
     private List<CSVColumnDefinition.Column> columns = new List<CSVColumnDefinition.Column>();
     public string study_UUID;
     public string participant_UUID;
+    public string host = "sherlock.gaim.ucf.edu";
+
     public static CSVWriter Instance;
     public CSVColumnDefinition columnDefinition;
     public string API_KEY; // Add a public field to set the API key in the Inspector
@@ -57,7 +59,7 @@ public class CSVWriter : MonoBehaviour
 
 private IEnumerator SubmitCSVCoroutine()
 {
-    string url = "https://sherlock.gaim.ucf.edu/api/logs/" + study_UUID + "/" + participant_UUID;
+    string url = host+"/api/logs/" + study_UUID + "/" + participant_UUID;
 
     byte[] fileData = null;
     bool fileReadSuccess = false;

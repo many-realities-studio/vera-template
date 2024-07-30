@@ -4,6 +4,13 @@ using UnityEngine;
 [CustomEditor(typeof(CSVWriter))]
 public class CSVWriterEditor : Editor
 {
+    private SerializedProperty columnDefinitionProperty;
+
+    private void OnEnable()
+    {
+        columnDefinitionProperty = serializedObject.FindProperty("columnDefinition");
+    }
+
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
@@ -19,6 +26,8 @@ public class CSVWriterEditor : Editor
         }
         else
         {
+            serializedObject.Update();
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Column Definitions", EditorStyles.boldLabel);
 
@@ -29,8 +38,9 @@ public class CSVWriterEditor : Editor
                 var column = csvWriter.columnDefinition.columns[i];
                 EditorGUILayout.BeginVertical(GUI.skin.box);
                 EditorGUILayout.LabelField($"Column {i + 1}", EditorStyles.boldLabel);
-                EditorGUILayout.TextField("Name", column.name);
-                EditorGUILayout.EnumPopup("Type", column.type);
+
+                column.name = EditorGUILayout.TextField("Name", column.name);
+                column.type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", column.type);
 
                 if (column.name != "ts" && column.name != "eventId")
                 {
@@ -40,6 +50,7 @@ public class CSVWriterEditor : Editor
                         i--; // Adjust index to account for removed element
                     }
                 }
+
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space();
             }
@@ -62,6 +73,13 @@ public class CSVWriterEditor : Editor
             {
                 csvWriter.SubmitCSV();
             }
+
+            if (GUILayout.Button("Clear Files"))
+            {
+                csvWriter.ClearFiles();
+            }
+
+            serializedObject.ApplyModifiedProperties();
         }
 
         if (GUI.changed)

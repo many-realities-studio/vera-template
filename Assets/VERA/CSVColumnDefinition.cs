@@ -14,7 +14,7 @@ public class CSVColumnDefinition : ScriptableObject
 
     public enum DataType
     {
-        Timestamp,
+        Date,
         Number,
         String,
         JSON

@@ -30,6 +30,8 @@ public class CSVWriter : MonoBehaviour
 
         foreach (var column in columnDefinition.columns)
         {
+          if(column.name != "ts") {
+
             switch (column.type)
             {
                 case CSVColumnDefinition.DataType.Number:
@@ -42,6 +44,7 @@ public class CSVWriter : MonoBehaviour
                     fakeData.Add(new { key = "value" });
                     break;
             }
+          }
         }
 
         CreateEntry(fakeData.ToArray());
@@ -54,10 +57,7 @@ public class CSVWriter : MonoBehaviour
 
 private IEnumerator SubmitCSVCoroutine()
 {
-    string url = "https://sherlock.gaim.ucf.edu/api/" + study_UUID + "/" + participant_UUID;
-
-    // Add a small delay before reading the file
-    yield return new WaitForSeconds(0.1f);
+    string url = "https://sherlock.gaim.ucf.edu/api/logs/" + study_UUID + "/" + participant_UUID;
 
     byte[] fileData = null;
     bool fileReadSuccess = false;
@@ -74,7 +74,11 @@ private IEnumerator SubmitCSVCoroutine()
         catch (IOException ex)
         {
             Debug.LogWarning($"Attempt {i + 1}: Failed to read file due to sharing violation. Retrying...");
-            yield return new WaitForSeconds(0.1f);
+        }
+
+        if (!fileReadSuccess)
+        {
+            yield return new WaitForSeconds(0.1f); // Add a small delay before retrying
         }
     }
 
@@ -105,17 +109,71 @@ private IEnumerator SubmitCSVCoroutine()
 }
 
 
-    public void ClearFiles()
+private bool IsFileLocked(FileInfo file)
+{
+    FileStream stream = null;
+
+    try
     {
-        DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
-        foreach (FileInfo file in di.GetFiles())
+        stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    }
+    catch (IOException)
+    {
+        // The file is locked by another process.
+        return true;
+    }
+    finally
+    {
+        stream?.Close();
+    }
+
+    return false;
+}
+
+
+public void ClearFiles()
+{
+    string path = Application.persistentDataPath;
+    Debug.Log("Clearing files in path: " + path);
+    DirectoryInfo di = new DirectoryInfo(path);
+
+    foreach (FileInfo file in di.GetFiles())
+    {
+        if (file.Extension == ".csv")
         {
-            if (file.Extension == ".csv")
+            bool fileDeleted = false;
+
+            for (int i = 0; i < 3; i++) // Retry mechanism
             {
-                file.Delete();
+                if (!IsFileLocked(file))
+                {
+                    try
+                    {
+                        file.Delete();
+                        fileDeleted = true;
+                        Debug.Log($"File {file.Name} deleted successfully.");
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Debug.LogWarning($"Attempt {i + 1}: Failed to delete file {file.Name}. Retrying...");
+                        System.Threading.Thread.Sleep(100); // Add a small delay before retrying
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"Attempt {i + 1}: File {file.Name} is locked. Retrying...");
+                    System.Threading.Thread.Sleep(100); // Add a small delay before retrying
+                }
+            }
+
+            if (!fileDeleted)
+            {
+                Debug.LogError($"Failed to delete the file {file.Name} after multiple attempts.");
             }
         }
     }
+}
 
 public void Initialize()
 {
@@ -144,13 +202,14 @@ public void Initialize()
 
     public void CreateEntry(params object[] values)
     {
-        if (values.Length != columns.Count)
+        if (values.Length != columns.Count - 1)
         {
             Debug.LogError("Values count does not match columns count.");
             return;
         }
 
         List<string> entry = new List<string>();
+        entry.Add(DateTime.UtcNow.ToString("o"));
 
         for (int i = 0; i < values.Length; i++)
         {
@@ -190,8 +249,8 @@ public void Initialize()
             UnityEditor.AssetDatabase.CreateAsset(columnDefinition, assetPath);
 
             // Add required columns
-            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "ts", type = CSVColumnDefinition.DataType.String });
-            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "eventId", type = CSVColumnDefinition.DataType.String });
+            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "ts", type = CSVColumnDefinition.DataType.Date });
+            columnDefinition.columns.Add(new CSVColumnDefinition.Column { name = "eventId", type = CSVColumnDefinition.DataType.Number });
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();

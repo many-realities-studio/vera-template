@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   columns:
   - name: ts
-    type: 2
+    type: 0
   - name: eventId
-    type: 2
+    type: 1
   - name: name
     type: 3

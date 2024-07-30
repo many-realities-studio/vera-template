@@ -30,13 +30,10 @@ public class CSVWriter : MonoBehaviour
 
         foreach (var column in columnDefinition.columns)
         {
-          if(column.name != "ts") {
+          if(column.name != "ts" && column.name != "eventId") {
 
             switch (column.type)
             {
-                case CSVColumnDefinition.DataType.Number:
-                    fakeData.Add(UnityEngine.Random.Range(0, 100));
-                    break;
                 case CSVColumnDefinition.DataType.String:
                     fakeData.Add("FakeString");
                     break;
@@ -47,7 +44,7 @@ public class CSVWriter : MonoBehaviour
           }
         }
 
-        CreateEntry(fakeData.ToArray());
+        CreateEntry(UnityEngine.Random.Range(0, 100), fakeData.ToArray());
     }
 
     public void SubmitCSV()
@@ -200,7 +197,7 @@ public void Initialize()
     }
 
 
-    public void CreateEntry(params object[] values)
+    public void CreateEntry(Number eventId, params object[] values)
     {
         if (values.Length != columns.Count - 1)
         {
@@ -209,7 +206,9 @@ public void Initialize()
         }
 
         List<string> entry = new List<string>();
+        // Add timestamp first.
         entry.Add(DateTime.UtcNow.ToString("o"));
+        entry.Add(Convert.ToString(eventId));
 
         for (int i = 0; i < values.Length; i++)
         {

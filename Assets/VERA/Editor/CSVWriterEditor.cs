@@ -37,10 +37,14 @@ public class CSVWriterEditor : Editor
             {
                 var column = csvWriter.columnDefinition.columns[i];
                 EditorGUILayout.BeginVertical(GUI.skin.box);
-                EditorGUILayout.LabelField($"Column {i + 1}", EditorStyles.boldLabel);
-
-                column.name = EditorGUILayout.TextField("Name", column.name);
+                if (column.name != "ts" && column.name != "eventId") { 
+                EditorGUILayout.LabelField($"Column {i + 1}: {column.name}", EditorStyles.boldLabel);
+                column.name = EditorGUILayout.DelayedTextField("Name (Return to save)", column.name);
                 column.type = (CSVColumnDefinition.DataType)EditorGUILayout.EnumPopup("Type", column.type);
+                } else {
+                EditorGUILayout.LabelField($"Required: {column.name}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Type", column.type.ToString());
+                }
 
                 if (column.name != "ts" && column.name != "eventId")
                 {

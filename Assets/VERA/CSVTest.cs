@@ -12,6 +12,6 @@ public class CSVTest : MonoBehaviour
         CSVWriter.Instance.CreateEntry(2, "Bob", new { Age = 30, Height = 180 });
 
         // Upload the file to the server
-        csvWriter.Instance.SubmitCSV();
+        csvWriter.SubmitCSV();
     }
 }

@@ -24,6 +24,17 @@ public class CSVWriter : MonoBehaviour
             Instance = this;
         }
         Initialize();
+        // Get the list of uploaded files from the json file "uploaded.json" on the persistent data path which contains an array
+        // of file names that have been uploaded to the server into "loaded"
+        string[] loadedFiles = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
+        // Loop through the files and upload all that aren't in the list
+        foreach (string file in Directory.GetFiles(Application.persistentDataPath, "*.csv"))
+        {
+            if (!Array.Exists(loadedFiles, element => element == Path.GetFileName(file)))
+            {
+                StartCoroutine(SubmitCSV(file));
+            }
+        }
     }
 
     public void SimulateEntry()
@@ -49,12 +60,12 @@ public class CSVWriter : MonoBehaviour
         CreateEntry(UnityEngine.Random.Range(0, 100), fakeData.ToArray());
     }
 
-    public void SubmitCSV()
+    public void SubmitCSV(string file = null)
     {
-        StartCoroutine(SubmitCSVCoroutine());
+        StartCoroutine(SubmitCSVCoroutine(file));
     }
 
-private IEnumerator SubmitCSVCoroutine()
+private IEnumerator SubmitCSVCoroutine(string file = null)
 {
     string url = host+"/api/logs/" + study_UUID + "/" + participant_UUID;
 
@@ -199,7 +210,7 @@ public void Initialize()
     }
 
 
-    public void CreateEntry(Number eventId, params object[] values)
+    public void CreateEntry(int eventId, params object[] values)
     {
         if (values.Length != columns.Count - 1)
         {

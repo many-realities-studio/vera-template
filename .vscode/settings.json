@@ -51,6 +51,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "vera-template.sln",
+    "dotnet.defaultSolution": "Test.sln",
     "gitdoc.enabled": false
 }

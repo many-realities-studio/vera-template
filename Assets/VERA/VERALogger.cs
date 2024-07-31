@@ -296,7 +296,7 @@ public class VERALogger : MonoBehaviour
 
     List<string> entry = new List<string>();
     // Add timestamp first.
-    entry.Add(EscapeForCsv(DateTime.UtcNow.ToString("o")));
+    entry.Add(DateTime.UtcNow.ToString("o"));
     entry.Add(Convert.ToString(eventId));
 
     for (int i = 0; i < values.Length; i++)
@@ -315,12 +315,28 @@ public class VERALogger : MonoBehaviour
           formattedValue = EscapeForCsv(value.ToString());
           break;
         case VERAColumnDefinition.DataType.JSON:
-        case VERAColumnDefinition.DataType.Transform:
           Debug.Log("Formatting JSON or Transform");
           var json = JsonConvert.SerializeObject(value);
           Debug.Log(value);
           Debug.Log(json);
-          formattedValue = EscapeForCsv(JsonConvert.SerializeObject(value));
+          formattedValue = EscapeForCsv(json);
+          break;
+        case VERAColumnDefinition.DataType.Transform:
+          var transform = value as Transform;
+          if (transform != null)
+          {
+            var settings = new JsonSerializerSettings
+            {
+              ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+
+            formattedValue = EscapeForCsv(JsonConvert.SerializeObject(new
+            {
+              position = new { x = transform.position.x, y = transform.position.y, z = transform.position.z },
+              rotation = new { x = transform.rotation.x, y = transform.rotation.y, z = transform.rotation.z, w = transform.rotation.w },
+              localScale = new { x = transform.localScale.x, y = transform.localScale.y, z = transform.localScale.z }
+            }, settings));
+          }
           break;
         default:
           formattedValue = EscapeForCsv(value.ToString());
@@ -369,7 +385,13 @@ public class VERALogger : MonoBehaviour
     }
 
     value = value.Replace("\"", "\"\"");
-    return $"\"{value}\"";
+    // If it contains a quote, wrap in quotes
+    if (value.Contains(",") || value.Contains("\n") || value.Contains("\""))
+    {
+      return $"\"{value}\"";
+    } else {
+      return value;
+    }
   }
 
 #if UNITY_EDITOR

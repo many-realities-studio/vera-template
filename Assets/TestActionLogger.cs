@@ -5,6 +5,7 @@ using UnityEngine;
 public class TestActionLogger : MonoBehaviour
 {
   int logNumber = 0;
+  int logFrames = 1000;
     // Start is called before the first frame update
     void Start()
     {
@@ -14,15 +15,19 @@ public class TestActionLogger : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    if (logNumber == 100 && VERALogger.Instance.initialized && VERALogger.Instance.collecting) {
+    if (logNumber == logFrames && VERALogger.Instance.initialized && VERALogger.Instance.collecting) {
       VERALogger.Instance.collecting = false;
       VERALogger.Instance.SubmitCSV();
     } else {
-    VERALogger.Instance.CreateEntry(1, 
+    VERALogger.Instance.CreateEntry(
+      // Event ID
+      1, 
       // Third column
       "Data Entry",
       // Fourth column
-      logNumber++
+      logNumber++,
+      // Fifth column
+      transform
     );
 
     }

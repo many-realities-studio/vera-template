@@ -21,3 +21,5 @@ MonoBehaviour:
     type: 3
   - name: Log Number
     type: 1
+  - name: Position
+    type: 2

@@ -425,6 +425,11 @@ public class VERALogger : MonoBehaviour
     if (forceCreate || columnDefinition == null)
     {
       columnDefinition = ScriptableObject.CreateInstance<VERAColumnDefinition>();
+      // Create the Columns folder if it doesn't exist
+      if (!Directory.Exists("Assets/VERA/Columns"))
+      {
+        Directory.CreateDirectory("Assets/VERA/Columns");
+      }
       string assetPath = $"Assets/VERA/Columns/{study_UUID}_ColumnDefinition.asset";
       UnityEditor.AssetDatabase.CreateAsset(columnDefinition, assetPath);
 

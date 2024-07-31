@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "CSVColumnDefinition", menuName = "ScriptableObjects/CSVColumnDefinition", order = 1)]
-public class CSVColumnDefinition : ScriptableObject
+[CreateAssetMenu(fileName = "VERAColumnDefinition", menuName = "ScriptableObjects/VERAColumnDefinition", order = 1)]
+public class VERAColumnDefinition : ScriptableObject
 {
     [Serializable]
     public class Column

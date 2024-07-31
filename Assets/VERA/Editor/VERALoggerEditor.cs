@@ -86,6 +86,10 @@ public class VERALoggerEditor : Editor
       {
         csvWriter.columnDefinition.columns.Add(new VERAColumnDefinition.Column());
       }
+      if (GUILayout.Button("Create New Column Definitions"))
+      {
+        csvWriter.CreateColumnDefinition(true);
+      }
 
       EditorGUILayout.Space();
 

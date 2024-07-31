@@ -13,7 +13,7 @@ public class VERALogger : MonoBehaviour
 {
   public string API_KEY; // Add a public field to set the API key in the Inspector
   public string study_UUID;
-  public string filePath="";
+  public string filePath = "";
   private List<VERAColumnDefinition.Column> columns = new List<VERAColumnDefinition.Column>();
   public string participant_UUID;
   private string host_live = "https://sherlock.gaim.ucf.edu";
@@ -34,19 +34,24 @@ public class VERALogger : MonoBehaviour
   public UnityEvent onInitialized = new UnityEvent();
   public bool initialized;
 
-  public IEnumerator TestConnection() {
+  public IEnumerator TestConnection()
+  {
     string host = development ? host_dev : host_live;
     string url = host + "/api/";
     UnityWebRequest www = UnityWebRequest.Get(url);
     www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
     yield return www.SendWebRequest();
-    if (www.result == UnityWebRequest.Result.Success) {
+    if (www.result == UnityWebRequest.Result.Success)
+    {
       Debug.Log("Connection successful");
-    } else {
+    }
+    else
+    {
       Debug.LogError("Connection failed: " + www.error);
       simulateOffline = true;
     }
   }
+
   public void Awake()
   {
     // Test if we can reach the server
@@ -126,12 +131,15 @@ public class VERALogger : MonoBehaviour
   {
     string host = development ? host_dev : host_live;
     string file_participant_UDID;
-    if(file.Length>0 && file.Contains("-")) {
+    if (file.Length > 0 && file.Contains("-"))
+    {
       Debug.Log(file);
       var basename = Path.GetFileName(file);
       file_participant_UDID = basename.Split('-')[1].Split('.')[0];
       Debug.Log(file_participant_UDID);
-    } else {
+    }
+    else
+    {
       Debug.LogError("Invalid file name");
       yield break;
     }
@@ -272,7 +280,8 @@ public class VERALogger : MonoBehaviour
   public void Initialize()
   {
     participant_UUID = Guid.NewGuid().ToString().Replace("-", "");
-    if(filePath == "") {
+    if (filePath == "")
+    {
       filePath = Path.Combine(Application.persistentDataPath, study_UUID + "-" + participant_UUID + ".csv");
     }
 
@@ -298,7 +307,8 @@ public class VERALogger : MonoBehaviour
 
   public void CreateEntry(int eventId, params object[] values)
   {
-    if(!collecting) {
+    if (!collecting)
+    {
       return;
     }
     if (values.Length != columns.Count - 2)
@@ -402,15 +412,17 @@ public class VERALogger : MonoBehaviour
     if (value.Contains(",") || value.Contains("\n") || value.Contains("\""))
     {
       return $"\"{value}\"";
-    } else {
+    }
+    else
+    {
       return value;
     }
   }
 
 #if UNITY_EDITOR
-  public void CreateColumnDefinition()
+  public void CreateColumnDefinition(bool forceCreate = true)
   {
-    if (columnDefinition == null)
+    if (forceCreate || columnDefinition == null)
     {
       columnDefinition = ScriptableObject.CreateInstance<VERAColumnDefinition>();
       string assetPath = $"Assets/VERA/Columns/{study_UUID}_ColumnDefinition.asset";

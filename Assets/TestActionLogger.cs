@@ -17,12 +17,10 @@ public class TestActionLogger : MonoBehaviour
     VERALogger.Instance.CreateEntry(
       // Event ID
       1, 
-      // Third column
-      "Data Entry",
-      // Fourth column
-      logNumber++,
       // Fifth column
-      transform
+      transform,
+      // Third column
+      "Data Entry" + logNumber++
     );
 
     }

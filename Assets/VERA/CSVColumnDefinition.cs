@@ -16,6 +16,7 @@ public class CSVColumnDefinition : ScriptableObject
     {
         Date,
         Number,
+        Transform,
         String,
         JSON
     }

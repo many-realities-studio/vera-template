@@ -567,9 +567,12 @@ MonoBehaviour:
   filePath: 
   study_UUID: 66a7d4153735c500ad199d02
   participant_UUID: 
-  host: http://localhost:4001
+  host_live: https://sherlock.gaim.ucf.edu
+  host_dev: http://localhost:4001
+  development: 0
+  simulateOffline: 0
   columnDefinition: {fileID: 11400000, guid: 8da9669f4fdac1e4e879f15b87a7d679, type: 2}
-  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjIzNTMyMDEsImV4cCI6MTcyMjM4MjAwMX0.8J-r6JQaisQe-kPn0wp7upHH-J8HrL3-rb0RaDE8New
+  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjIzODIyMDYsImV4cCI6MTcyMjQxMTAwNn0.DpPg_kMdJy0f3wA4ISrq2XGZiUNawkj7uwUkly5A0yA
 --- !u!4 &1974589000
 Transform:
   m_ObjectHideFlags: 0

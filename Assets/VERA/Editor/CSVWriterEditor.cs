@@ -75,14 +75,14 @@ public class CSVWriterEditor : Editor
 
             if (GUILayout.Button("Submit CSV"))
             {
-                csvWriter.SubmitCSV();
+                csvWriter.SubmitCSV(csvWriter.filePath);
             }
 
             if (GUILayout.Button("Clear Files"))
             {
                 csvWriter.ClearFiles();
             }
-
+            
             serializedObject.ApplyModifiedProperties();
         }
 

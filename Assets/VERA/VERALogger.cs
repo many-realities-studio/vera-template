@@ -34,9 +34,23 @@ public class VERALogger : MonoBehaviour
   public UnityEvent onInitialized = new UnityEvent();
   public bool initialized;
 
-
+  public IEnumerator TestConnection() {
+    string host = development ? host_dev : host_live;
+    string url = host + "/api/";
+    UnityWebRequest www = UnityWebRequest.Get(url);
+    www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+    yield return www.SendWebRequest();
+    if (www.result == UnityWebRequest.Result.Success) {
+      Debug.Log("Connection successful");
+    } else {
+      Debug.LogError("Connection failed: " + www.error);
+      simulateOffline = true;
+    }
+  }
   public void Awake()
   {
+    // Test if we can reach the server
+    StartCoroutine(TestConnection());
     if (Instance == null)
     {
       Instance = this;
@@ -160,10 +174,6 @@ public class VERALogger : MonoBehaviour
     if (!simulateOffline)
     {
       yield return www.SendWebRequest();
-    }
-    else
-    {
-      yield return new WaitForSeconds(1);
     }
     if (!simulateOffline && www.result == UnityWebRequest.Result.Success)
     {

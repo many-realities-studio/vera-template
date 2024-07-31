@@ -6,6 +6,8 @@ using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Linq;
+using UnityEngine.UIElements;
+using UnityEngine.Events;
 
 public class VERALogger : MonoBehaviour
 {
@@ -28,6 +30,10 @@ public class VERALogger : MonoBehaviour
   private const int cacheSizeLimit = 100; // Adjust the limit as needed
   private const float flushInterval = 5.0f; // Adjust the interval as needed
   private float timeSinceLastFlush = 0f;
+  public UnityEvent onFileUploaded = new UnityEvent();
+  public UnityEvent onInitialized = new UnityEvent();
+  public bool initialized;
+
 
   public void Awake()
   {
@@ -35,9 +41,7 @@ public class VERALogger : MonoBehaviour
     {
       Instance = this;
     }
-    if(IsRunningInTest()) {
-      return;
-    }
+    DontDestroyOnLoad(gameObject);
     // Get the list of uploaded files from the json file "uploaded.json" on the persistent data path which contains an array
     // of file names that have been uploaded to the server into "loaded"
     if (File.Exists(Path.Combine(Application.persistentDataPath, "uploaded.txt")))
@@ -49,6 +53,7 @@ public class VERALogger : MonoBehaviour
       {
         if (file != "" && !Array.Exists(loadedFiles, element => element == Path.GetFileName(file)))
         {
+          Debug.Log("Path exists, submitting..." + file);
           StartCoroutine(SubmitCSVCoroutine(file));
         }
       }
@@ -60,12 +65,6 @@ public class VERALogger : MonoBehaviour
     }
     Initialize();
     // Do not destroy on scene change
-    DontDestroyOnLoad(gameObject);
-  }
-  private bool IsRunningInTest()
-  {
-    return AppDomain.CurrentDomain.GetAssemblies()
-        .Any(assembly => assembly.FullName.StartsWith("nunit.framework", StringComparison.OrdinalIgnoreCase));
   }
 
   public void SimulateEntry()
@@ -100,17 +99,25 @@ public class VERALogger : MonoBehaviour
 
   public void SubmitCSV()
   {
+    Debug.Log(filePath);
     StartCoroutine(SubmitCSVCoroutine(filePath));
   }
   public void SubmitCSV(string file)
   {
+    Debug.Log(file);
     StartCoroutine(SubmitCSVCoroutine(file));
   }
 
-  private IEnumerator SubmitCSVCoroutine(string file = null)
+  private IEnumerator SubmitCSVCoroutine(string file)
   {
     string host = development ? host_dev : host_live;
+    if(file.Length>0 && file.Contains("-")) {
+
     var participant_UDID = file.Split('-')[1].Split('.')[0];
+    } else {
+      Debug.LogError("Invalid file name");
+      yield break;
+    }
     string url = host + "/api/logs/" + study_UUID + "/" + participant_UUID;
 
     byte[] fileData = null;
@@ -121,6 +128,7 @@ public class VERALogger : MonoBehaviour
     {
       try
       {
+        Debug.Log("Reading file: " + filePath);
         fileData = File.ReadAllBytes(filePath);
         fileReadSuccess = true;
         break;
@@ -170,6 +178,7 @@ public class VERALogger : MonoBehaviour
       }
       // Print out uploaded.txt
       Debug.Log(File.ReadAllText(Path.Combine(Application.persistentDataPath, "uploaded.txt")));
+      onFileUploaded?.Invoke();
 
     }
     else if (simulateOffline)
@@ -270,16 +279,18 @@ public class VERALogger : MonoBehaviour
       writer.Flush();
     }
     Debug.Log("CSV File created and saved at " + filePath);
+    initialized = true;
+    onInitialized?.Invoke();
   }
 
   public void CreateEntry(int eventId, params object[] values)
   {
     if(!collecting) {
-      Debug.Log("Error: No longer collecting data");
+      return;
     }
     if (values.Length != columns.Count - 2)
     {
-      Debug.LogError("Values count does not match columns count.");
+      Debug.LogError("Values count does not match columns count. values" + values.Length + " cols " + columns.Count);
       return;
     }
 

@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 190605648}
   - component: {fileID: 190605647}
   - component: {fileID: 190605646}
+  - component: {fileID: 190605652}
   m_Layer: 0
   m_Name: TestObject
   m_TagString: Untagged
@@ -378,6 +379,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &190605652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 190605645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9978e732f2d425349823edc92ea393e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &299639867
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,14 +833,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e63c53de868b28941947d5fedf7fe7ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjIzODIyMDYsImV4cCI6MTcyMjQxMTAwNn0.DpPg_kMdJy0f3wA4ISrq2XGZiUNawkj7uwUkly5A0yA
-  study_UUID: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjI0MzY5MjcsImV4cCI6MTcyMjQ2NTcyN30.D8WlfvQv3MCSYIApOeuj4pkCc66pARXhQmjgonPIJ9Y
+  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjI0MzY5MjcsImV4cCI6MTcyMjQ2NTcyN30.D8WlfvQv3MCSYIApOeuj4pkCc66pARXhQmjgonPIJ9Y
+  study_UUID: 66a7d4153735c500ad199d02
   filePath: 
   participant_UUID: 
   development: 0
   simulateOffline: 0
+  collecting: 1
   columnDefinition: {fileID: 11400000, guid: 8da9669f4fdac1e4e879f15b87a7d679, type: 2}
   cache: []
+  onFileUploaded:
+    m_PersistentCalls:
+      m_Calls: []
+  onInitialized:
+    m_PersistentCalls:
+      m_Calls: []
+  initialized: 0
 --- !u!4 &1974589000
 Transform:
   m_ObjectHideFlags: 0

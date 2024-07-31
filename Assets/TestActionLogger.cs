@@ -14,17 +14,16 @@ public class TestActionLogger : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    if (logNumber == 100)  {
+    if (logNumber == 100 && VERALogger.Instance.initialized && VERALogger.Instance.collecting) {
       VERALogger.Instance.collecting = false;
       VERALogger.Instance.SubmitCSV();
     } else {
-    VERALogger.Instance.CreateEntry(1, new List<object>
-    {
+    VERALogger.Instance.CreateEntry(1, 
       // Third column
       "Data Entry",
       // Fourth column
       logNumber++
-    });
+    );
 
     }
   }

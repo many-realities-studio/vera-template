@@ -125,15 +125,18 @@ public class VERALogger : MonoBehaviour
   private IEnumerator SubmitCSVCoroutine(string file)
   {
     string host = development ? host_dev : host_live;
+    string file_participant_UDID;
     if(file.Length>0 && file.Contains("-")) {
-
-    var participant_UDID = file.Split('-')[1].Split('.')[0];
+      Debug.Log(file);
+      var basename = Path.GetFileName(file);
+      file_participant_UDID = basename.Split('-')[1].Split('.')[0];
+      Debug.Log(file_participant_UDID);
     } else {
       Debug.LogError("Invalid file name");
       yield break;
     }
-    string url = host + "/api/logs/" + study_UUID + "/" + participant_UUID;
-
+    string url = host + "/api/logs/" + study_UUID + "/" + file_participant_UDID;
+    Debug.Log("Submitting to url" + url);
     byte[] fileData = null;
     bool fileReadSuccess = false;
 
@@ -142,8 +145,8 @@ public class VERALogger : MonoBehaviour
     {
       try
       {
-        Debug.Log("Reading file: " + filePath);
-        fileData = File.ReadAllBytes(filePath);
+        Debug.Log("Reading file: " + file);
+        fileData = File.ReadAllBytes(file);
         fileReadSuccess = true;
         break;
       }
@@ -167,7 +170,7 @@ public class VERALogger : MonoBehaviour
     WWWForm form = new WWWForm();
     form.AddField("study_UUID", study_UUID);
     form.AddField("participant_UUID", participant_UUID);
-    form.AddBinaryData("file", fileData, study_UUID + "-" + participant_UUID + ".csv", "text/csv");
+    form.AddBinaryData("file", fileData, study_UUID + "-" + file_participant_UDID + ".csv", "text/csv");
 
     UnityWebRequest www = UnityWebRequest.Post(url, form);
     www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
@@ -180,10 +183,10 @@ public class VERALogger : MonoBehaviour
       Debug.Log("Upload complete! Response: " + www.downloadHandler.text);
       // Append the uploaded file name to the "uploaded.txt" file as a new line
       var uploaded = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
-      if (!Array.Exists(uploaded, element => element == Path.GetFileName(filePath)))
+      if (!Array.Exists(uploaded, element => element == Path.GetFileName(file)))
       {
 
-        File.AppendAllText(Path.Combine(Application.persistentDataPath, "uploaded.txt"), Path.GetFileName(filePath) + Environment.NewLine);
+        File.AppendAllText(Path.Combine(Application.persistentDataPath, "uploaded.txt"), Path.GetFileName(file) + Environment.NewLine);
         Debug.Log("Updated uploaded.txt");
       }
       // Print out uploaded.txt

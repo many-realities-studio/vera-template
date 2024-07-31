@@ -143,7 +143,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &190605646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -833,14 +833,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e63c53de868b28941947d5fedf7fe7ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjI0MzY5MjcsImV4cCI6MTcyMjQ2NTcyN30.D8WlfvQv3MCSYIApOeuj4pkCc66pARXhQmjgonPIJ9Y
-  study_UUID: 66a7d4153735c500ad199d02
+  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3MjI0NDQwODYsImV4cCI6MTcyMjQ3Mjg4Nn0.0ULTeilAmJ82b-n3R77OA5oezrGBCct8ghehP7qx3sg
+  study_UUID: 66aa69425c5a5101562c6f15
   filePath: 
   participant_UUID: 
   development: 0
   simulateOffline: 0
   collecting: 1
-  columnDefinition: {fileID: 11400000, guid: 8da9669f4fdac1e4e879f15b87a7d679, type: 2}
+  columnDefinition: {fileID: 11400000, guid: 69b4aaa1aa7d9ee45bdc3d393fe88df9, type: 2}
   cache: []
   onFileUploaded:
     m_PersistentCalls:
@@ -959,5 +959,5 @@ SceneRoots:
   - {fileID: 756192408}
   - {fileID: 2092139010}
   - {fileID: 1249617921}
-  - {fileID: 1974589000}
   - {fileID: 190605651}
+  - {fileID: 1974589000}

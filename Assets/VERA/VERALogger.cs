@@ -296,7 +296,6 @@ public class VERALogger : MonoBehaviour
         columnNames.Add(column.name);
       }
 
-      Debug.Log(columnNames);
       writer.WriteLine(string.Join(",", columnNames));
       writer.Flush();
     }
@@ -328,7 +327,6 @@ public class VERALogger : MonoBehaviour
       VERAColumnDefinition.Column column = columns[i + 2];
 
       string formattedValue = "";
-      Debug.Log("Column type: " + column.type);
       switch (column.type)
       {
         case VERAColumnDefinition.DataType.Number:
@@ -338,10 +336,7 @@ public class VERALogger : MonoBehaviour
           formattedValue = EscapeForCsv(value.ToString());
           break;
         case VERAColumnDefinition.DataType.JSON:
-          Debug.Log("Formatting JSON or Transform");
           var json = JsonConvert.SerializeObject(value);
-          Debug.Log(value);
-          Debug.Log(json);
           formattedValue = EscapeForCsv(json);
           break;
         case VERAColumnDefinition.DataType.Transform:

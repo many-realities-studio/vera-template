@@ -21,7 +21,7 @@ public class VERALoggerEditor : Editor
     {
       if (GUILayout.Button("Create Column Definition"))
       {
-        csvWriter.CreateColumnDefinition();
+        csvWriter.CreateColumnDefinition(true);
       }
     }
     else

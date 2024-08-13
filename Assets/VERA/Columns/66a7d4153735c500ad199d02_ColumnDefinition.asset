@@ -17,3 +17,7 @@ MonoBehaviour:
     type: 0
   - name: eventId
     type: 1
+  - name: Info
+    type: 2
+  - name: Data
+    type: 3

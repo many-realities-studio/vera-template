@@ -10,12 +10,22 @@ public class InGameDebugLine : MonoBehaviour
 
     // InGameDebugLine handles a single line of text which is logged in the in-game 
     //     debug logger (e.g., InGameDebugLog.cs)
-    
+
+    [Header("Components")]
     [SerializeField] private RectTransform lineParentTransform;
-    [SerializeField] private TMP_Text logTextLine;
+    [SerializeField] private TMP_Text logTextLine1;
+    [SerializeField] private TMP_Text logTextLine2;
+    [SerializeField] private Image logSymbolImg;
+
+    [Header("Customization")]
+    [SerializeField] private bool useClassicStyle = true;
     [SerializeField] private Color normalLogColor;
+    [SerializeField] private Sprite normalLogSprite;
     [SerializeField] private Color warningLogColor;
+    [SerializeField] private Sprite warningLogSprite;
     [SerializeField] private Color errorLogColor;
+    [SerializeField] private Sprite errorLogSprite;
+
     private int debugsThisFrame = 0;
 
     // Update; reset debugs this frame to 0 (for use in detecting "infinite" loops)
@@ -26,7 +36,7 @@ public class InGameDebugLine : MonoBehaviour
 
     // Updates the line content to match a given message. Displays newText as the message's text,
     //     colors the text based on lineType, and logs the time based on current time.
-    public void SetLineContent(string newText, LogType newLogType)
+    public void SetLineContent(string logString, string stackTrace, LogType logType)
     {
         // If this frame, there are over 1000 debugs, quit for this frame; there may be an infinite feedback loop
         if (debugsThisFrame > 1000)
@@ -37,39 +47,42 @@ public class InGameDebugLine : MonoBehaviour
 
         // Add current time to message
         string currentTime = DateTime.Now.ToString("HH:mm:ss");
-        newText = "[" + currentTime + "] " + newText;
+        logString = "[" + currentTime + "] " + logString;
 
-        // Set text to the new message and update color
-        logTextLine.text = newText;
+        // Reset stylizing (color, log image)
+        ResetStylizing(logType);
 
+        // Set text to the new message
+        logTextLine1.text = logString;
+        logTextLine2.text = stackTrace;
+    }
+
+    // Resets stylizing (including text color and display image)
+    // Based on given log type (log, warning, error)
+    private void ResetStylizing(LogType newLogType)
+    {
         switch (newLogType)
         {
             case LogType.Log:
-                logTextLine.color = normalLogColor;
+                logTextLine1.color = normalLogColor;
+                logTextLine2.color = normalLogColor;
+                logSymbolImg.sprite = normalLogSprite;
                 break;
             case LogType.Warning:
-                logTextLine.color = warningLogColor;
+                logTextLine1.color = warningLogColor;
+                logTextLine2.color = warningLogColor;
+                logSymbolImg.sprite = warningLogSprite;
                 break;
             case LogType.Error:
-                logTextLine.color = errorLogColor;
+                logTextLine1.color = errorLogColor;
+                logTextLine2.color = errorLogColor;
+                logSymbolImg.sprite = errorLogSprite;
                 break;
             default:
-                logTextLine.color = normalLogColor;
+                logTextLine1.color = normalLogColor;
+                logTextLine2.color = normalLogColor;
+                logSymbolImg.sprite = normalLogSprite;
                 break;
         }
-
-        // Update log box size to message size (e.g., if spillover to 2nd or 3rd line, update height)
-        //     Forces reload of content size fitter, so to get the correct size
-        ContentSizeFitter contentSizeFitter = logTextLine.GetComponent<ContentSizeFitter>();
-        contentSizeFitter.enabled = false;
-
-        LayoutRebuilder.ForceRebuildLayoutImmediate(logTextLine.GetComponent<RectTransform>());
-
-        contentSizeFitter.enabled = true;
-
-        RectTransform textRectTransform = logTextLine.GetComponent<RectTransform>();
-        float preferredHeight = logTextLine.preferredHeight;
-
-        lineParentTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
     }
 }

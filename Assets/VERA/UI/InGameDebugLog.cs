@@ -30,7 +30,7 @@ public class InGameDebugLog : MonoBehaviour
     {
         // Create new line, and pass it desired info
         InGameDebugLine newLine = Instantiate(debugLinePrefab, debugLineAreaParent);
-        newLine.SetLineContent(logString, type);
+        newLine.SetLineContent(logString, stackTrace, type);
     }
 
     // Clears log content

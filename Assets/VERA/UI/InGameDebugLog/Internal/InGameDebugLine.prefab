@@ -65,8 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Test textTest textTest textTest textTest textTest textTest textTest textTest
-    textTest textTest textTest textTest textTest textTest textTest text
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -200,8 +199,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Test textTest textTest textTest textTest textTest textTest textTest textTest
-    textTest textTest textTest textTest textTest textTest textTest text
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -440,7 +438,10 @@ MonoBehaviour:
   logTextLine1: {fileID: 6817043768884292349}
   logTextLine2: {fileID: 3412402870712861041}
   logSymbolImg: {fileID: 7223876399459297820}
-  useClassicStyle: 1
+  backgroundImg: {fileID: 4681388273960140484}
+  baseBackgroundColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+  hoveredBackgroundColor: {r: 0.2981131, g: 0.2981131, b: 0.2981131, a: 1}
+  selectedBackgroundColor: {r: 0.4943396, g: 0.4943396, b: 0.4943396, a: 1}
   normalLogColor: {r: 0.909804, g: 0.909804, b: 0.909804, a: 1}
   normalLogSprite: {fileID: 21300000, guid: a616025055f812c46aeb4e17066f1d5d, type: 3}
   warningLogColor: {r: 1, g: 0.7568628, b: 0.027450982, a: 1}

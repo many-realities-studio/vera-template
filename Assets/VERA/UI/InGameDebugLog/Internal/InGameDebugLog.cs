@@ -20,8 +20,11 @@ public class InGameDebugLog : MonoBehaviour
     [SerializeField] private TMP_Text extendedDetailsText;
     [SerializeField] private GameObject extendedDetailsParent;
     [SerializeField] private Button hideExtendedDetailsButton;
+    [SerializeField] private GameObject newLogNotification;
 
+    private List<InGameDebugLine> displayedLogLines = new List<InGameDebugLine>();
     private InGameDebugLine activeExtendedDebugLine;
+    private bool newLogHasNotBeenSeen = false;
 
     // Awake, registers callback for recieving debug messages
     private void Awake()
@@ -29,8 +32,10 @@ public class InGameDebugLog : MonoBehaviour
         if (enableLogWindow)
         {
             HideExtendedWindow();
-            
+            newLogNotification.SetActive(false);
+
             ShowWindow();
+
             // Register the callback for logging messages
             Application.logMessageReceived += HandleNewLog;
             StartCoroutine(Tester());
@@ -44,6 +49,17 @@ public class InGameDebugLog : MonoBehaviour
         {
             // Unregister the callback
             Application.logMessageReceived -= HandleNewLog;
+        }
+    }
+
+    // Update, checks if scroll view has reached the bottom, 
+    private void Update()
+    {
+        // Check for "reading" new log
+        if (newLogHasNotBeenSeen && debugLineAreaScrollRect.verticalNormalizedPosition < .001f)
+        {
+            newLogHasNotBeenSeen = false;
+            newLogNotification.SetActive(false);
         }
     }
 
@@ -82,22 +98,40 @@ public class InGameDebugLog : MonoBehaviour
         // Create new line, and pass it desired info
         InGameDebugLine newLine = Instantiate(debugLinePrefab, debugLineAreaParent);
         newLine.SetLineContent(this, logString, stackTrace, type);
-        UpdateScrollToNewLog();
+        displayedLogLines.Add(newLine);
+
+        if (displayedLogLines.Count <= 5)
+            StartCoroutine(WaitThenZeroScroll());
+        else
+            UpdateScrollToNewLog();
     }
 
     // Updates the scroll view to match new log amount
     private void UpdateScrollToNewLog()
     {
-        if (debugLineAreaScrollRect.verticalNormalizedPosition < 0.01f)
+        // Check if we need to scroll down
+        if (debugLineAreaScrollRect.verticalNormalizedPosition < 0.001f)
         {
             StartCoroutine(WaitThenZeroScroll());
-        }        
+        }
+        // Else, check if we need to notify user of new unread log
+        else if (!newLogHasNotBeenSeen)
+        {
+            newLogHasNotBeenSeen = true;
+            newLogNotification.SetActive(true);
+        }
     }
 
     // Waits a frame for content to update, then zeroes out scroll
     private IEnumerator WaitThenZeroScroll()
     {
         yield return null;
+        JumpToNewestLog();
+    }
+
+    // Jumps to newest log (resets scroll view to 0)
+    public void JumpToNewestLog()
+    {
         debugLineAreaScrollRect.verticalNormalizedPosition = 0f;
     }
 
@@ -105,6 +139,14 @@ public class InGameDebugLog : MonoBehaviour
     public void ClearLog()
     {
         HideExtendedWindow();
+
+        // Hide new log notification
+        if (newLogHasNotBeenSeen)
+        {
+            newLogHasNotBeenSeen = false;
+            newLogNotification.SetActive(false);
+        }
+
         // Delete all active log lines
         foreach (Transform t in debugLineAreaParent)
         {

@@ -19,5 +19,3 @@ ADDITIONAL USAGE:
 - If you wish to show or hide the log via an external script, there is an "InGameDebugLog.cs" 
 	script which is attached to the log game object; call the "ShowWindow()" and "HideWindow()" 
 	functions of this script to show or hide the log.
-- Similarly, if you wish to pause or resume the log via an external script, InGameDebugLog.cs
-	has the "PauseLogging()" and "ResumeLogging()" functions.

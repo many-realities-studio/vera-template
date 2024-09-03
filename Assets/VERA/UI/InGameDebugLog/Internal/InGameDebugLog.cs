@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,10 +22,20 @@ public class InGameDebugLog : MonoBehaviour
     [SerializeField] private GameObject extendedDetailsParent;
     [SerializeField] private Button hideExtendedDetailsButton;
     [SerializeField] private GameObject newLogNotification;
+    [SerializeField] private TMP_Text normalLogNumText;
+    [SerializeField] private TMP_Text warningLogNumText;
+    [SerializeField] private TMP_Text errorLogNumText;
 
     private List<InGameDebugLine> displayedLogLines = new List<InGameDebugLine>();
     private InGameDebugLine activeExtendedDebugLine;
     private bool newLogHasNotBeenSeen = false;
+
+    private int numNormalLogs = 0;
+    private int numWarningLogs = 0;
+    private int numErrorLogs = 0;
+    private bool showNormalLogs = true;
+    private bool showWarningLogs = true;
+    private bool showErrorLogs = true;
 
     // Awake, registers callback for recieving debug messages
     private void Awake()
@@ -99,15 +110,33 @@ public class InGameDebugLog : MonoBehaviour
         InGameDebugLine newLine = Instantiate(debugLinePrefab, debugLineAreaParent);
         newLine.SetLineContent(this, logString, stackTrace, type);
         displayedLogLines.Add(newLine);
+        bool isLineDisplayed = ResetLogDisplay(newLine);
 
         if (displayedLogLines.Count <= 5)
             StartCoroutine(WaitThenZeroScroll());
         else
-            UpdateScrollToNewLog();
+            UpdateScrollToNewLog(isLineDisplayed);
+
+        if (type == LogType.Log)
+            numNormalLogs++;
+        else if (type == LogType.Warning)
+            numWarningLogs++;
+        else if (type == LogType.Error)
+            numErrorLogs++;
+
+        UpdateLogTypeNums();
+    }
+
+    // Updates how many logs of each type are present (displaying the numbers to the UI)
+    private void UpdateLogTypeNums()
+    {
+        normalLogNumText.text = numNormalLogs.ToString();
+        warningLogNumText.text = numWarningLogs.ToString();
+        errorLogNumText.text = numErrorLogs.ToString();
     }
 
     // Updates the scroll view to match new log amount
-    private void UpdateScrollToNewLog()
+    private void UpdateScrollToNewLog(bool checkForUnseenLog)
     {
         // Check if we need to scroll down
         if (debugLineAreaScrollRect.verticalNormalizedPosition < 0.001f)
@@ -115,7 +144,7 @@ public class InGameDebugLog : MonoBehaviour
             StartCoroutine(WaitThenZeroScroll());
         }
         // Else, check if we need to notify user of new unread log
-        else if (!newLogHasNotBeenSeen)
+        else if (checkForUnseenLog && !newLogHasNotBeenSeen)
         {
             newLogHasNotBeenSeen = true;
             newLogNotification.SetActive(true);
@@ -139,6 +168,11 @@ public class InGameDebugLog : MonoBehaviour
     public void ClearLog()
     {
         HideExtendedWindow();
+
+        numNormalLogs = 0;
+        numWarningLogs = 0;
+        numErrorLogs = 0;
+        UpdateLogTypeNums();
 
         // Hide new log notification
         if (newLogHasNotBeenSeen)
@@ -193,5 +227,76 @@ public class InGameDebugLog : MonoBehaviour
     public void PauseLogging()
     {
         enableLogWindow = false;
+    }
+
+    // Toggles whether "normal" logs should be seen in the logger
+    public void ToggleViewNormalLogs()
+    {
+        showNormalLogs = !showNormalLogs;
+        ResetLogDisplayAll();
+    }
+
+    // Toggles whether warnings should be seen in the logger
+    public void ToggleViewWarnings()
+    {
+        showWarningLogs = !showWarningLogs;
+        ResetLogDisplayAll();
+    }
+
+    // Toggles whether errors should be seen in the logger
+    public void ToggleViewErrors()
+    {
+        showErrorLogs = !showErrorLogs;
+        ResetLogDisplayAll();
+    }
+
+    // Resets log display to only show pertinent logs, based on what types of logs should be shown
+    private void ResetLogDisplayAll()
+    {
+        foreach (InGameDebugLine line in displayedLogLines)
+        {
+            ResetLogDisplay(line);
+        }
+    }
+
+    // Resets log display of a single given log line
+    // Returns whether the log line is displayed or not, based on current parameters
+    private bool ResetLogDisplay(InGameDebugLine line)
+    {
+        if (line.logType == LogType.Log)
+        {
+            if (showNormalLogs)
+            {
+                line.gameObject.SetActive(true);
+            }
+            else
+            {
+                line.gameObject.SetActive(false);
+            }
+        }
+        else if (line.logType == LogType.Warning)
+        {
+            if (showWarningLogs)
+            {
+                line.gameObject.SetActive(true);
+            }
+            else
+            {
+                line.gameObject.SetActive(false);
+            }
+        }
+        else if (line.logType == LogType.Error)
+        {
+            if (showErrorLogs)
+            {
+                line.gameObject.SetActive(true);
+            }
+            else
+            {
+                line.gameObject.SetActive(false);
+            }
+        }
+
+        return line.gameObject.activeSelf;
     }
 }

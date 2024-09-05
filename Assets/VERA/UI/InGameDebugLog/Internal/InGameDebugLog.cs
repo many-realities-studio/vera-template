@@ -49,7 +49,6 @@ public class InGameDebugLog : MonoBehaviour
 
             // Register the callback for logging messages
             Application.logMessageReceived += HandleNewLog;
-            StartCoroutine(Tester());
         }
     }
 
@@ -71,22 +70,6 @@ public class InGameDebugLog : MonoBehaviour
         {
             newLogHasNotBeenSeen = false;
             newLogNotification.SetActive(false);
-        }
-    }
-
-    // TEMPORARY, Delete
-    private IEnumerator Tester()
-    {
-        int numMessages = 0;
-        while (true)
-        {
-            numMessages++;
-            Debug.Log("Message " + numMessages);
-            yield return new WaitForSeconds(2f);
-            Debug.LogWarning("Warning " + numMessages);
-            yield return new WaitForSeconds(2f);
-            Debug.LogError("Error " + numMessages);
-            yield return new WaitForSeconds(2f);
         }
     }
 

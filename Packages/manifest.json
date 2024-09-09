@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
+    "com.de-panther.webxr": "0.22.0",
+    "com.de-panther.webxr-input-profiles-loader": "0.6.2",
+    "com.de-panther.webxr-interactions": "0.22.0",
     "com.unity.collab-proxy": "2.4.3",
     "com.unity.feature.development": "1.0.1",
     "com.unity.feature.vr": "1.0.0",
@@ -11,6 +14,7 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.6",
     "com.unity.visualscripting": "1.9.4",
+    "com.unity.xr.hands": "1.4.1",
     "com.unity.xr.interaction.toolkit": "3.0.3",
     "com.unity.xr.management": "4.4.0",
     "com.unity.xr.openxr": "1.11.0",
@@ -45,5 +49,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.de-panther"
+      ]
+    }
+  ]
 }

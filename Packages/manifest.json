@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.unity.2d.sprite": "1.0.0",
     "com.de-panther.webxr": "0.22.0",
     "com.de-panther.webxr-input-profiles-loader": "0.6.2",
     "com.de-panther.webxr-interactions": "0.22.0",

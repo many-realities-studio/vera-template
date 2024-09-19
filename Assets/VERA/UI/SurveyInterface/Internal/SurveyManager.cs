@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Windows;
+using static System.Net.Mime.MediaTypeNames;
 using static UnityEngine.GraphicsBuffer;
 
 public class SurveyManager : MonoBehaviour
@@ -15,9 +16,14 @@ public class SurveyManager : MonoBehaviour
 
     #region VARIABLES
 
+    // Overall survey
     public SurveyInfo activeSurvey;
+    private bool surveyStarted = false;
 
+    // References
     [Header("References")]
+    [SerializeField] private Canvas managerCanvas;
+    private CanvasGroup managerCanvGroup;
     [SerializeField] private RectTransform responseAreaParent;
     [SerializeField] private Transform responseContentParent;
     private CanvasGroup responseContentCanvGroup;
@@ -28,6 +34,10 @@ public class SurveyManager : MonoBehaviour
     private CanvasGroup countDisplayCanvGroup;
     [SerializeField] private ScrollRect questionScrollRect;
     [SerializeField] private ScrollRect responseScrollRect;
+    [SerializeField] private GameObject moreOptionsNotif;
+    private CanvasGroup moreOptionsCanvGroup;
+    [SerializeField] private Button nextButton;
+    [SerializeField] private Button previousButton;
 
     // Question
     public enum SurveyQuestionType
@@ -37,15 +47,19 @@ public class SurveyManager : MonoBehaviour
         Rating
     }
     private int currentQuestionIndex;
+    private float fullQuestionResponseHeight;
+    private float maxQuestionHeight = 300f;
+    private bool[] moreOptionsNotifNeeded;
 
     // Selection and multiple choice
     [SerializeField] private SurveySelectionOption multipleChoiceOptionPrefab;
     [SerializeField] private SurveySelectionOption selectionOptionPrefab;
+    [SerializeField] private TMP_Text textAreaPrefab;
     private List<SurveySelectionOption> choiceOptions;
     private List<SurveySelectionOption> selectedOptions; // (Selection)
     private SurveySelectionOption selectedOption; // (Multiple choice)
 
-    // Results
+    // Start and results
     private string[] savedSelections;
 
     // Animations
@@ -54,10 +68,25 @@ public class SurveyManager : MonoBehaviour
     #endregion
 
 
-    #region TESTING, TODO DELETE
+    #region MONOBEHAVIOUR
 
+    // Start, hide the canvas
     private void Start()
     {
+        managerCanvGroup = managerCanvas.GetComponent<CanvasGroup>();
+        questionTextCanvGroup = questionText.GetComponent<CanvasGroup>();
+        countDisplayCanvGroup = countDisplay.GetComponent<CanvasGroup>();
+        responseContentCanvGroup = responseContentParent.GetComponent<CanvasGroup>();
+        moreOptionsCanvGroup = moreOptionsNotif.GetComponent<CanvasGroup>();
+
+        fullQuestionResponseHeight = responseAreaParent.sizeDelta.y + questionAreaParent.sizeDelta.y;
+
+        moreOptionsNotif.SetActive(false);
+
+        managerCanvGroup.alpha = 0f;
+        managerCanvas.gameObject.SetActive(false);
+
+        // TESTING, TODO: delete
         BeginSurvey(activeSurvey);
     }
 
@@ -69,10 +98,21 @@ public class SurveyManager : MonoBehaviour
     // Begins a survey based on given info
     public void BeginSurvey(SurveyInfo surveyToBegin)
     {
+        surveyStarted = false;
+        managerCanvas.gameObject.SetActive(true);
+
+        LeanTween.cancel(managerCanvGroup.gameObject);
+        managerCanvGroup.alpha = 0f;
+        managerCanvGroup.LeanAlpha(1f, swipeTime);
+
         activeSurvey = surveyToBegin;
 
-        currentQuestionIndex = -1;
+        currentQuestionIndex = -2;
         savedSelections = new string[activeSurvey.surveyQuestions.Count];
+        moreOptionsNotifNeeded = new bool[activeSurvey.surveyQuestions.Count];
+
+        for (int i = 0; i < moreOptionsNotifNeeded.Length; i++) 
+            moreOptionsNotifNeeded[i] = true;
 
         selectedOption = null;
         if (selectedOptions == null)
@@ -80,20 +120,137 @@ public class SurveyManager : MonoBehaviour
         else
             selectedOptions.Clear();
 
-        if (questionTextCanvGroup == null)
-            questionTextCanvGroup = questionText.GetComponent<CanvasGroup>();
-        if (countDisplayCanvGroup == null)
-            countDisplayCanvGroup = countDisplay.GetComponent<CanvasGroup>();
-        if (responseContentCanvGroup == null)
-            responseContentCanvGroup = responseContentParent.GetComponent<CanvasGroup>();
+        countDisplayCanvGroup.alpha = 0f;
 
         NextQuestion();
     }
 
-     // Completes the currently active survey
+     // Completes the currently active survey and hide the window
     public void CompleteSurvey()
     {
-        Debug.Log("Survey complete!");
+        // TODO, functionality for pushing results or showing an end screen
+        currentQuestionIndex++;
+        StartCoroutine(DisplayEndScreen());
+    }
+
+    // Hides the window by fading it out, then deactivating it
+    private IEnumerator HideWindow()
+    {
+        LeanTween.cancel(managerCanvGroup.gameObject);
+        managerCanvGroup.LeanAlpha(0f, swipeTime);
+
+        yield return new WaitForSeconds(swipeTime);
+
+        managerCanvas.gameObject.SetActive(false);
+    }
+
+    #endregion
+
+
+    #region ANIMATION HELPERS
+
+    // Fades out swipe animations for the question/response area
+    private void FadeOutSwipeAnims()
+    {
+        // Cancel any existing animations and reset params
+        LeanTween.cancel(responseContentCanvGroup.gameObject);
+        responseContentCanvGroup.alpha = 1f;
+        LeanTween.cancel(questionTextCanvGroup.gameObject);
+        questionTextCanvGroup.alpha = 1f;
+        LeanTween.cancel(countDisplayCanvGroup.gameObject);
+        //countDisplayCanvGroup.alpha = 1f;
+        LeanTween.cancel(questionAreaParent.gameObject);
+        LeanTween.cancel(responseAreaParent.gameObject);
+
+        // Begin fade animation        
+        responseContentCanvGroup.LeanAlpha(0f, swipeTime);
+        questionTextCanvGroup.LeanAlpha(0f, swipeTime);
+        countDisplayCanvGroup.LeanAlpha(0f, swipeTime);
+    }
+
+    // Fades in swipe animations for the question/response area
+    private void FadeInSwipeAnims()
+    {
+        countDisplayCanvGroup.LeanAlpha(1f, swipeTime);
+        FadeInSwipeAnimsNoCount();
+    }
+
+    // Fades in swipe animations, no count
+    private void FadeInSwipeAnimsNoCount()
+    {
+        responseContentCanvGroup.LeanAlpha(1f, swipeTime);
+        questionTextCanvGroup.LeanAlpha(1f, swipeTime);
+    }
+
+    // Updates the question/response area sizes based on their content
+    private void UpdateQuestionResponseSizes()
+    {
+        // Get desired heights
+        LayoutRebuilder.ForceRebuildLayoutImmediate(questionText.rectTransform);
+        float desiredQuestionHeight = questionText.rectTransform.sizeDelta.y + 10f;
+
+        if (desiredQuestionHeight > maxQuestionHeight)
+            desiredQuestionHeight = maxQuestionHeight;
+
+        float desiredResponseHeight = fullQuestionResponseHeight - desiredQuestionHeight;
+
+        // Animate to desired heights
+        LeanTween.value(questionAreaParent.gameObject, questionAreaParent.sizeDelta.y, desiredQuestionHeight, swipeTime).setEaseInOutQuad().setOnUpdate((value) =>
+        {
+            questionAreaParent.sizeDelta = new Vector2(questionAreaParent.sizeDelta.x, value);
+            questionScrollRect.verticalNormalizedPosition = 1f;
+        });
+        LeanTween.value(responseAreaParent.gameObject, responseAreaParent.sizeDelta.y, desiredResponseHeight, swipeTime).setEaseInOutQuad().setOnUpdate((value) =>
+        {
+            responseAreaParent.sizeDelta = new Vector2(responseAreaParent.sizeDelta.x, value);
+            responseScrollRect.verticalNormalizedPosition = 1f;
+        });
+
+        StartCoroutine(CheckForMoreOptionsNotif(desiredResponseHeight));
+    }
+
+    // Displays the notification that there are more options if there are
+    private IEnumerator CheckForMoreOptionsNotif(float desiredResponseHeight)
+    {
+        // Wait for content to update
+        yield return null;
+        yield return null;
+
+        // If check is not needed, we are okay.
+        if (currentQuestionIndex >= 0 && currentQuestionIndex < activeSurvey.surveyQuestions.Count && !moreOptionsNotifNeeded[currentQuestionIndex])
+        {
+            nextButton.interactable = true;
+            yield break;
+        }
+
+        // If content fits, we are okay.
+        if (responseContentParent.GetComponent<RectTransform>().sizeDelta.y - 15f < desiredResponseHeight)
+        {
+            nextButton.interactable = true;
+            yield break;
+        }
+
+        // Content does not fit, show notification
+        LeanTween.cancel(moreOptionsCanvGroup.gameObject);
+        moreOptionsCanvGroup.alpha = 0f;
+        moreOptionsNotif.gameObject.SetActive(true);
+        moreOptionsCanvGroup.LeanAlpha(1f, swipeTime);
+
+        yield return new WaitForSeconds(swipeTime);
+
+        moreOptionsCanvGroup.LeanAlpha(.7f, swipeTime).setLoopPingPong();
+
+        // Wait until user has scrolled to see all options
+        while (responseScrollRect.verticalNormalizedPosition >= 0.01f)
+        {
+            yield return null;
+        }
+
+        // Options seen, hide notif
+        LeanTween.cancel(moreOptionsCanvGroup.gameObject);
+        moreOptionsCanvGroup.alpha = 0f;
+        moreOptionsNotif.gameObject.SetActive(false);
+        nextButton.interactable = true;
     }
 
     #endregion
@@ -104,6 +261,27 @@ public class SurveyManager : MonoBehaviour
     // Navigates to the next question
     public void NextQuestion()
     {
+        // Check for start screen
+        if (currentQuestionIndex == -2)
+        {
+            StopCoroutine(DisplayStartScreen());
+            StartCoroutine(DisplayStartScreen());
+            currentQuestionIndex++;
+            return;
+        }
+
+        if (currentQuestionIndex == -1)
+            nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Next";
+
+        // Check for end screen
+        if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count)
+        {
+            StartCoroutine(HideWindow());
+            return;
+        }
+
+        previousButton.interactable = true;
+
         // Save this question's results
         SaveCurrentQuestionResults();
 
@@ -113,6 +291,10 @@ public class SurveyManager : MonoBehaviour
             CompleteSurvey();
             return;
         }
+
+        // Save that we visited this question and don't need the notification of more options
+        if (currentQuestionIndex >= 0)
+            moreOptionsNotifNeeded[currentQuestionIndex] = false;
 
         // Incriment to next question
         currentQuestionIndex++;
@@ -125,11 +307,27 @@ public class SurveyManager : MonoBehaviour
     // Navigates to the previous question
     public void PreviousQuestion()
     {
-        // Save current question's results
-        SaveCurrentQuestionResults();
+        // Check if we are on the final screen
+        if (currentQuestionIndex == activeSurvey.surveyQuestions.Count)
+            nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Next";
+        else
+            SaveCurrentQuestionResults();
 
         // Check if we can go to a previous question
-        if (currentQuestionIndex <= 0) return;
+        if (currentQuestionIndex <= -1) return;
+
+        // Disable more options notification of current question
+        LeanTween.cancel(moreOptionsCanvGroup.gameObject);
+        moreOptionsCanvGroup.alpha = 0f;
+
+        // Check if we need to go to the start screen
+        if (currentQuestionIndex == 0)
+        {
+            StopCoroutine(DisplayStartScreen());
+            StartCoroutine(DisplayStartScreen());
+            currentQuestionIndex--;
+            return;
+        }
                 
         // Decrement to previous question
         currentQuestionIndex--;
@@ -142,20 +340,10 @@ public class SurveyManager : MonoBehaviour
     // Sets up a new question
     private IEnumerator SetupNewQuestion()
     {
-        // Cancel any existing animations and reset params
-        LeanTween.cancel(responseContentCanvGroup.gameObject);
-        responseContentCanvGroup.alpha = 1f;
-        LeanTween.cancel(questionTextCanvGroup.gameObject);
-        questionTextCanvGroup.alpha = 1f;
-        LeanTween.cancel(countDisplayCanvGroup.gameObject);
-        countDisplayCanvGroup.alpha = 1f;
-        LeanTween.cancel(questionAreaParent.gameObject);
-        LeanTween.cancel(responseAreaParent.gameObject);
+        nextButton.interactable = false;
+        previousButton.interactable = false;
 
-        // Begin fade animation        
-        responseContentCanvGroup.LeanAlpha(0f, swipeTime);
-        questionTextCanvGroup.LeanAlpha(0f, swipeTime);
-        countDisplayCanvGroup.LeanAlpha(0f, swipeTime);
+        FadeOutSwipeAnims();
 
         // Wait for swipe animation to complete, then remove existing options
         yield return new WaitForSeconds(swipeTime);
@@ -180,27 +368,75 @@ public class SurveyManager : MonoBehaviour
 
         // Set the question text and update desired size
         questionText.text = activeSurvey.surveyQuestions[currentQuestionIndex].questionText;
-        LayoutRebuilder.ForceRebuildLayoutImmediate(questionText.rectTransform);
-        float desiredQuestionHeight = questionText.rectTransform.sizeDelta.y + 10f;
 
-        if (desiredQuestionHeight > 100f)
-            desiredQuestionHeight = 100f;
+        UpdateQuestionResponseSizes();
 
-        LeanTween.value(questionAreaParent.gameObject, questionAreaParent.sizeDelta.y, desiredQuestionHeight, swipeTime).setEaseInOutQuad().setOnUpdate((value) =>
+        previousButton.interactable = true;
+
+        FadeInSwipeAnims();
+    }
+
+    #endregion
+
+
+    #region START / END SCREEN
+
+    // Displays the survey's start screen
+    private IEnumerator DisplayStartScreen()
+    {
+        nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Start";
+
+        previousButton.interactable = false;
+
+        // If the survey has already started (e.g., we are coming from question 1), remove old components
+        if (surveyStarted)
         {
-            questionAreaParent.sizeDelta = new Vector2(questionAreaParent.sizeDelta.x, value);
-            questionScrollRect.verticalNormalizedPosition = 1f;
-        });
-        LeanTween.value(responseAreaParent.gameObject, responseAreaParent.sizeDelta.y, 336f - desiredQuestionHeight, swipeTime).setEaseInOutQuad().setOnUpdate((value) =>
-        {
-            responseAreaParent.sizeDelta = new Vector2(responseAreaParent.sizeDelta.x, value);
-            responseScrollRect.verticalNormalizedPosition = 1f;
-        });
+            FadeOutSwipeAnims();
 
-        // Begin fade animation
-        responseContentCanvGroup.LeanAlpha(1f, swipeTime);
-        questionTextCanvGroup.LeanAlpha(1f, swipeTime);
-        countDisplayCanvGroup.LeanAlpha(1f, swipeTime);
+            // Wait for swipe animation to complete, then remove existing options
+            yield return new WaitForSeconds(swipeTime);
+
+            RemoveDisplayedOptions();
+        }
+
+        // Set the description
+        TMP_Text newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
+        newBlock.text = activeSurvey.surveyDescription;
+
+        // Set the question text and update desired size
+        questionText.text = activeSurvey.surveyName;
+
+        UpdateQuestionResponseSizes();
+
+        FadeInSwipeAnimsNoCount();
+
+        surveyStarted = true;
+    }
+
+    // Displays the survey's end screen
+    private IEnumerator DisplayEndScreen()
+    {
+        nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Finish";
+
+        FadeOutSwipeAnims();
+
+        // Wait for swipe animation to complete, then remove existing options
+        yield return new WaitForSeconds(swipeTime);
+
+        RemoveDisplayedOptions();
+
+        // Set the description
+        TMP_Text newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
+        newBlock.text = activeSurvey.surveyEndStatement;
+
+        // Set the question text and update desired size
+        questionText.text = "Survey complete";
+
+        UpdateQuestionResponseSizes();
+
+        FadeInSwipeAnimsNoCount();
+
+        previousButton.interactable = true;
     }
 
     #endregion
@@ -314,9 +550,6 @@ public class SurveyManager : MonoBehaviour
                 break;
         }
         savedSelections[currentQuestionIndex] = saveString;
-
-        // TODO, DELETE
-        Debug.Log(saveString);
     }
 
     #endregion
@@ -385,6 +618,8 @@ public class SurveyInfo
     // SurveyInfo is a data container for defining a single survey
 
     public string surveyName;
+    [TextArea] public string surveyDescription;
+    [TextArea] public string surveyEndStatement;
     public List<SurveyQuestionInfo> surveyQuestions;
 
 }

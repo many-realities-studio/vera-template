@@ -27,8 +27,6 @@ public class SurveySelectionOption : MonoBehaviour, IPointerClickHandler, IPoint
 
     public bool isSelected { get; private set; } = false;
     public bool isHovered { get; private set; } = false;
-
-    // Letter ID is A, B, C, D... relating to question's order in display
     public int sortId { get; private set; }
 
     #endregion

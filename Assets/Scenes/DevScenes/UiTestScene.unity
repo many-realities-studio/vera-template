@@ -992,6 +992,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2076058912}
+  - {fileID: 1126721500}
   - {fileID: 1047382688}
   m_Father: {fileID: 1500671641}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2002,6 +2003,81 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1 &1126721497
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1126721500}
+  - component: {fileID: 1126721499}
+  - component: {fileID: 1126721498}
+  m_Layer: 5
+  m_Name: MatrixSeparatorLine
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1126721498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126721497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.24705884, g: 0.24705884, b: 0.24705884, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1126721499
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126721497}
+  m_CullTransparentMesh: 1
+--- !u!224 &1126721500
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126721497}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 307469864}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 275, y: 0}
+  m_SizeDelta: {x: 3, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1141259820
 GameObject:
   m_ObjectHideFlags: 0
@@ -3026,7 +3102,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 386.5, y: -0}
-  m_SizeDelta: {x: 790, y: 0}
+  m_SizeDelta: {x: 760, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1626338136
 MonoBehaviour:
@@ -3734,70 +3810,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2567436d712d86841a4de208fe64bd95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activeSurvey:
-    surveyName: Test Survey
-    surveyDescription: 'Here''s a short description of the survey before the survey
-      begins. '
-    surveyEndStatement: Thank you for taking the survey!
-    surveyQuestions:
-    - questionType: 1
-      questionText: This is a selection question. Select all that apply.
-      optionsDisplayStrings:
-      - I like this question!
-      - This question makes me uncomfortable.
-      - This question has good formatting.
-      - This question can handle really long sequences of response text. For example,
-        this option goes for a really long time, but the response option reformats
-        to fit the response's text.
-      - This is another selection option.
-      - This is also another selection option.
-      - And another.
-      - And a final option.
-      - Just kidding here's another option.
-      - And another.
-      - And just one more.
-      - Here's the actual final option.
-      - Here's a post-final option.
-      - Here's a post-post-final option.
-      - And here's the actual last option.
-    - questionType: 0
-      questionText: 'This is a multiple choice question. You can see that the text
-        of this question is much longer, meaning it takes up multiple lines. But
-        notice how the question reformats to take up more space, so you can see the
-        question. If there''s more you can''t see, the scroll view activates. Select
-        one option below.
-
-        This question takes up a lot of vertical space.
-        It even has multiple lines.
-
-        This question is very very long; very
-        very long.
-
-        This question is very very long; very very long.
-
-        This
-        question is very very long; very very long.
-
-        This question is very
-        very long; very very long.
-
-        This question is very very long; very
-        very long.'
-      optionsDisplayStrings:
-      - This is answer A.
-      - This is answer B.
-      - This is answer C.
-      - This is answer D.
-    - questionType: 0
-      questionText: Multiple choice example...
-      optionsDisplayStrings:
-      - Option 1
-      - Option 2
-      - Option 2
-      - Option 2
-      - Option 2
-      - Option 2
-      - Option 2
+  activeSurvey: {fileID: 11400000, guid: fe55ef34f3e00d847a6c802c858a7465, type: 2}
   managerCanvas: {fileID: 313380027}
   responseAreaParent: {fileID: 1500671641}
   responseContentParent: {fileID: 2076058912}
@@ -3812,6 +3825,10 @@ MonoBehaviour:
   multipleChoiceOptionPrefab: {fileID: 704167066431602365, guid: 32583467d3487424e9f2bed768763fdc, type: 3}
   selectionOptionPrefab: {fileID: -1907464291815338174, guid: f94ced0314ac88444a8d4747b5afb31e, type: 3}
   textAreaPrefab: {fileID: 171283110753532495, guid: fd2f3ffab4f27f04d98c6d98df79479b, type: 3}
+  sliderOptionPrefab: {fileID: 3039016264559949973, guid: de83c99a8fc8a4348b54b0d57976e37b, type: 3}
+  matrixOptionsPrefab: {fileID: 4967384743025985607, guid: ac8d5e0ab9acffd439a7ead79eb73a3c, type: 3}
+  matrixSeparatorLine: {fileID: 1126721497}
+  matrixContentFitter: {fileID: 0}
 --- !u!4 &1830470995
 Transform:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ public class SurveyManager : MonoBehaviour
     #region VARIABLES
 
     // Overall survey
-    public SurveyInfo activeSurvey;
+    [SerializeField] private SurveyInfo activeSurvey;
     private bool surveyStarted = false;
 
     // References
@@ -40,12 +40,6 @@ public class SurveyManager : MonoBehaviour
     [SerializeField] private Button previousButton;
 
     // Question
-    public enum SurveyQuestionType
-    {
-        MultipleChoice,
-        Selection,
-        Rating
-    }
     private int currentQuestionIndex;
     private float fullQuestionResponseHeight;
     private float maxQuestionHeight = 300f;
@@ -58,6 +52,16 @@ public class SurveyManager : MonoBehaviour
     private List<SurveySelectionOption> choiceOptions;
     private List<SurveySelectionOption> selectedOptions; // (Selection)
     private SurveySelectionOption selectedOption; // (Multiple choice)
+
+    // Slider
+    [SerializeField] private SurveySliderOption sliderOptionPrefab;
+    private SurveySliderOption activeSliderOption;
+
+    // Matrix
+    [SerializeField] private MatrixOptions matrixOptionsPrefab;
+    [SerializeField] private GameObject matrixSeparatorLine;
+    [SerializeField] private ContentSizeFitter matrixContentFitter;
+    private MatrixOptions matrixOptions;
 
     // Start and results
     private string[] savedSelections;
@@ -215,6 +219,7 @@ public class SurveyManager : MonoBehaviour
         // Wait for content to update
         yield return null;
         yield return null;
+        yield return null;
 
         // If check is not needed, we are okay.
         if (currentQuestionIndex >= 0 && currentQuestionIndex < activeSurvey.surveyQuestions.Count && !moreOptionsNotifNeeded[currentQuestionIndex])
@@ -285,16 +290,16 @@ public class SurveyManager : MonoBehaviour
         // Save this question's results
         SaveCurrentQuestionResults();
 
+        // Save that we visited this question and don't need the notification of more options
+        if (currentQuestionIndex >= 0)
+            moreOptionsNotifNeeded[currentQuestionIndex] = false;
+
         // Check for last question
         if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count - 1)
         {
             CompleteSurvey();
             return;
         }
-
-        // Save that we visited this question and don't need the notification of more options
-        if (currentQuestionIndex >= 0)
-            moreOptionsNotifNeeded[currentQuestionIndex] = false;
 
         // Incriment to next question
         currentQuestionIndex++;
@@ -356,15 +361,22 @@ public class SurveyManager : MonoBehaviour
         // Setup new question based on question type
         switch (activeSurvey.surveyQuestions[currentQuestionIndex].questionType)
         {
-            case SurveyQuestionType.MultipleChoice:
+            case SurveyQuestionInfo.SurveyQuestionType.MultipleChoice:
                 SetupChoiceOrSelection(multipleChoiceOptionPrefab);
                 break;
-            case SurveyQuestionType.Selection:
+            case SurveyQuestionInfo.SurveyQuestionType.Selection:
                 SetupChoiceOrSelection(selectionOptionPrefab);
                 break;
-            case SurveyQuestionType.Rating:
+            case SurveyQuestionInfo.SurveyQuestionType.Slider:
+                SetupSlider();
+                break;
+            case SurveyQuestionInfo.SurveyQuestionType.Matrix:
+                matrixSeparatorLine.SetActive(true);
+                SetupMatrix();
                 break;
         }
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(responseContentParent.GetComponent<RectTransform>());
 
         // Set the question text and update desired size
         questionText.text = activeSurvey.surveyQuestions[currentQuestionIndex].questionText;
@@ -374,6 +386,22 @@ public class SurveyManager : MonoBehaviour
         previousButton.interactable = true;
 
         FadeInSwipeAnims();
+    }
+
+    // Removes all displayed response options
+    private void RemoveDisplayedOptions()
+    {
+        selectedOption = null;
+
+        if (selectedOptions != null)
+            selectedOptions.Clear();
+
+        foreach (Transform t in responseContentParent)
+        {
+            GameObject.Destroy(t.gameObject);
+        }
+
+        matrixSeparatorLine.SetActive(false);
     }
 
     #endregion
@@ -442,7 +470,77 @@ public class SurveyManager : MonoBehaviour
     #endregion
 
 
-    #region SETUP NEW OPTIONS
+    #region SAVE
+
+    // Saves current question results to array
+    private void SaveCurrentQuestionResults()
+    {
+        if (currentQuestionIndex < 0 || currentQuestionIndex >= activeSurvey.surveyQuestions.Count) return;
+
+        // Build a save string with the necessary info inside it
+        string saveString = "";
+
+        // Save string based on question type
+        switch (activeSurvey.surveyQuestions[currentQuestionIndex].questionType)
+        {
+            // Multiple choice, save selected answer (e.g., "MultipleChoice: A")
+            case SurveyQuestionInfo.SurveyQuestionType.MultipleChoice:
+                saveString += "MultipleChoice, ";
+                if (selectedOption == null)
+                {
+                    saveString += "N/A";
+                }
+                else
+                {
+                    saveString += selectedOption.sortId;
+                }
+                break;
+            // Selection, save selected answers (e.g., "Selection: A, B, D")
+            case SurveyQuestionInfo.SurveyQuestionType.Selection:
+                saveString += "Selection, ";
+                if (selectedOptions.Count == 0)
+                {
+                    saveString += "N/A";
+                }
+                else
+                {
+                    saveString += selectedOptions[0].sortId;
+                    for (int i = 1; i < selectedOptions.Count; i++)
+                    {
+                        saveString += ", " + selectedOptions[i].sortId; 
+                    }
+                }
+                break;
+            // Slider, save slider value (as float)
+            case SurveyQuestionInfo.SurveyQuestionType.Slider:
+                saveString += "Slider, ";
+                saveString += activeSliderOption.GetSliderValue().ToString();
+                break;
+            // Matrix, save row selection options
+            case SurveyQuestionInfo.SurveyQuestionType.Matrix:
+                saveString += "Matrix, ";
+                List<int> activeIndexes = matrixOptions.GetActiveIndexes();
+                if (activeIndexes.Count == 0)
+                {
+                    saveString += "N/A";
+                }
+                else
+                {
+                    saveString += activeIndexes[0].ToString();
+                    for (int i = 1; i < activeIndexes.Count; i++)
+                    {
+                        saveString += ", " + activeIndexes[i].ToString();
+                    }
+                }
+                break;
+        }
+        savedSelections[currentQuestionIndex] = saveString;
+    }
+
+    #endregion
+
+
+    #region SELECTION / MULTIPLE CHOICE
 
     // Sets up multiple choice or selection question based on current question index
     private void SetupChoiceOrSelection(SurveySelectionOption optionPrefab)
@@ -473,11 +571,11 @@ public class SurveyManager : MonoBehaviour
 
         // Set up new choice options
         int i;
-        for (i = 0; i < activeSurvey.surveyQuestions[currentQuestionIndex].optionsDisplayStrings.Length; i++)
+        for (i = 0; i < activeSurvey.surveyQuestions[currentQuestionIndex].selectionOptions.Length; i++)
         {
             // Spawn and setup new response option
             SurveySelectionOption newOption = GameObject.Instantiate(optionPrefab, responseContentParent);
-            newOption.Setup(this, i, activeSurvey.surveyQuestions[currentQuestionIndex].optionsDisplayStrings[i]);
+            newOption.Setup(this, i, activeSurvey.surveyQuestions[currentQuestionIndex].selectionOptions[i]);
             choiceOptions.Add(newOption);
 
             if (optionsWhichNeedToBeOn.Contains(i))
@@ -487,81 +585,11 @@ public class SurveyManager : MonoBehaviour
         }
     }
 
-    // Removes all displayed response options
-    private void RemoveDisplayedOptions()
-    {
-        selectedOption = null;
-
-        if (selectedOptions != null)
-            selectedOptions.Clear();
-
-        foreach (Transform t in responseContentParent)
-        {
-            GameObject.Destroy(t.gameObject);
-        }
-    }
-
-    #endregion
-
-
-    #region SAVE
-
-    // Saves current question results to array
-    private void SaveCurrentQuestionResults()
-    {
-        if (currentQuestionIndex < 0 || currentQuestionIndex >= activeSurvey.surveyQuestions.Count) return;
-
-        // Build a save string with the necessary info inside it
-        string saveString = "";
-
-        // Save string based on question type
-        switch (activeSurvey.surveyQuestions[currentQuestionIndex].questionType)
-        {
-            // Multiple choice, save selected answer (e.g., "MultipleChoice: A")
-            case SurveyQuestionType.MultipleChoice:
-                saveString += "MultipleChoice, ";
-                if (selectedOption == null)
-                {
-                    saveString += "N/A";
-                }
-                else
-                {
-                    saveString += selectedOption.sortId;
-                }
-                break;
-            // Selection, save selected answers (e.g., "Selection: A, B, D")
-            case SurveyQuestionType.Selection:
-                saveString += "Selection, ";
-                if (selectedOptions.Count == 0)
-                {
-                    saveString += "N/A";
-                }
-                else
-                {
-                    saveString += selectedOptions[0].sortId;
-                    for (int i = 1; i < selectedOptions.Count; i++)
-                    {
-                        saveString += ", " + selectedOptions[i].sortId; 
-                    }
-                }
-                break;
-            // Rating, TODO
-            case SurveyQuestionType.Rating:
-                break;
-        }
-        savedSelections[currentQuestionIndex] = saveString;
-    }
-
-    #endregion
-
-
-    #region SELECTION
-
     // Called when an option is clicked; update selected options
     public void OptionWasClicked(SurveySelectionOption option)
     {
         // Multiple choice, only one option can be active at a time
-        if (activeSurvey.surveyQuestions[currentQuestionIndex].questionType == SurveyQuestionType.MultipleChoice)
+        if (activeSurvey.surveyQuestions[currentQuestionIndex].questionType == SurveyQuestionInfo.SurveyQuestionType.MultipleChoice)
         {
             // Selected new option (off -> on)
             if (option.isSelected)
@@ -585,7 +613,7 @@ public class SurveyManager : MonoBehaviour
             }
         }
         // Selection, multiple options can be active at a time
-        else if (activeSurvey.surveyQuestions[currentQuestionIndex].questionType == SurveyQuestionType.Selection)
+        else if (activeSurvey.surveyQuestions[currentQuestionIndex].questionType == SurveyQuestionInfo.SurveyQuestionType.Selection)
         {
             // If we are activating an option, add it to the selected options list if needed
             if (option.isSelected)
@@ -609,30 +637,88 @@ public class SurveyManager : MonoBehaviour
     #endregion
 
 
-}
+    #region SLIDER
 
-[System.Serializable]
-public class SurveyInfo
-{
+    // Sets up a slider response question
+    private void SetupSlider()
+    {
+        float savedSliderVal = 0f;
+        // If data exists from previous response entry, load slider value
+        if (savedSelections[currentQuestionIndex] != null && savedSelections[currentQuestionIndex] != "")
+        {
+            // Split the string by commas and trim spaces from each part
+            string[] parts = savedSelections[currentQuestionIndex].Split(',')
+                             .Select(part => part.Trim())
+                             .ToArray();
 
-    // SurveyInfo is a data container for defining a single survey
+            if (parts.Length > 1 && parts[1] != "N/A")
+            {
+                bool parseSuccess = float.TryParse(parts[1], out savedSliderVal);
+                if (!parseSuccess)
+                    Debug.LogWarning("Unable to parse saved slider value; setting value to 0 and continuing.");
+            }
+        }
 
-    public string surveyName;
-    [TextArea] public string surveyDescription;
-    [TextArea] public string surveyEndStatement;
-    public List<SurveyQuestionInfo> surveyQuestions;
+        // Spawn and setup new response option
+        SurveySliderOption newSlider = GameObject.Instantiate(sliderOptionPrefab, responseContentParent);
+        newSlider.SetSliderValue(savedSliderVal);
+        newSlider.SetLeftText(activeSurvey.surveyQuestions[currentQuestionIndex].leftSliderText);
+        newSlider.SetRightText(activeSurvey.surveyQuestions[currentQuestionIndex].rightSliderText);
+        activeSliderOption = newSlider;
+    }
 
-}
+    #endregion
 
-[System.Serializable]
-public class SurveyQuestionInfo
-{
 
-    // SurveyQuestionInfo is a data container for defining what a single survey question consists of
+    #region MATRIX
 
-    public SurveyManager.SurveyQuestionType questionType;
-    [TextArea] public string questionText;
 
-    public string[] optionsDisplayStrings;
+    // Sets up a matrix question
+    private void SetupMatrix()
+    {
+        int[] selectedMatrixOptions = null;
+        // If data exists from previous response entry, load which options were selected
+        if (savedSelections[currentQuestionIndex] != null && savedSelections[currentQuestionIndex] != "")
+        {
+            // Split the string by commas and trim spaces from each part
+            string[] parts = savedSelections[currentQuestionIndex].Split(',')
+                             .Select(part => part.Trim())
+                             .ToArray();
+
+            if (parts.Length > 1)
+            {
+                // Convert each value to an integer or -1 if parsing fails
+                selectedMatrixOptions = parts.Select(part =>
+                {
+                    int number;
+                    bool success = int.TryParse(part, out number);
+                    return success ? number : -1;
+                }).Skip(1).ToArray();
+            }
+        }
+
+        // Spawn overall matrix and setup columns
+        matrixOptions = GameObject.Instantiate(matrixOptionsPrefab, responseContentParent);
+        matrixOptions.SetupHeader(activeSurvey.surveyQuestions[currentQuestionIndex].matrixColumnTexts);
+
+        // Spawn and setup new response options
+        for (int i = 0; i < activeSurvey.surveyQuestions[currentQuestionIndex].matrixRowTexts.Length; i++)
+        {
+            string rowText = activeSurvey.surveyQuestions[currentQuestionIndex].matrixRowTexts[i];
+            int numCols = activeSurvey.surveyQuestions[currentQuestionIndex].matrixColumnTexts.Length;
+            int activeIdx = -1;
+            if (selectedMatrixOptions != null && selectedMatrixOptions.Length > i)
+            {
+                activeIdx = selectedMatrixOptions[i];
+            }
+
+            matrixOptions.AddNewOptionArea(rowText, numCols, activeIdx);
+        }
+
+    }
+
+
+    #endregion
+
 
 }

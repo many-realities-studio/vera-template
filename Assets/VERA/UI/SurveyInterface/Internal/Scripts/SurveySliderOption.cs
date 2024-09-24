@@ -50,6 +50,12 @@ public class SurveySliderOption : MonoBehaviour
         slider.value = newValue;
     }
 
+    // Gets navigatable item, for use in VLAT
+    public GameObject GetNavigatableItem()
+    {
+        return slider.gameObject;
+    }
+
     #endregion
 
 }

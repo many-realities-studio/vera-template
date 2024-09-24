@@ -44,6 +44,17 @@ public class MatrixOptionArea : MonoBehaviour
         }
     }
 
+    // Returns a list of the navigatable items in this option, for use in VLAT
+    public List<GameObject> GetNavigatableItems()
+    {
+        List<GameObject> ret = new List<GameObject>();
+        foreach (Toggle t in toggles)
+        {
+            ret.Add(t.gameObject);
+        }
+        return ret;
+    }
+
     #endregion
 
 

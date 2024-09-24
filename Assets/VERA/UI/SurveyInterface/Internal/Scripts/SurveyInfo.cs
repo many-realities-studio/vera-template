@@ -9,10 +9,15 @@ public class SurveyInfo : ScriptableObject
 
     // SurveyInfo is a data container for defining a single survey
 
+
+    #region VARIABLES
+
     public string surveyName;
     [TextArea] public string surveyDescription;
     [TextArea] public string surveyEndStatement;
     public List<SurveyQuestionInfo> surveyQuestions;
+
+    #endregion
 
 }
 
@@ -21,6 +26,9 @@ public class SurveyQuestionInfo
 {
 
     // SurveyQuestionInfo is a data container for defining what a single survey question consists of
+
+
+    #region OVERVIEW
 
     public enum SurveyQuestionType
     {
@@ -39,10 +47,20 @@ public class SurveyQuestionInfo
     [Tooltip("The question's displayed text, written as should be displayed to the survey taker")]
     [TextArea] public string questionText;
 
+    #endregion
+
+
+    #region MULTIPLE CHOICE / SELECTION
+
     // Multiple choice / selection
     [Header("Multiple Choice / Selection")]
     [Tooltip("The options the survey taker may choose from, written as should be displayed to the survey taker")]
     public string[] selectionOptions;
+
+    #endregion
+
+
+    #region SLIDER
 
     // Slider
     [Header("Slider")]
@@ -51,11 +69,18 @@ public class SurveyQuestionInfo
     [Tooltip("The text which will display to the right of the slider, indicating what the slider indicates when slid to the right")]
     public string rightSliderText;
 
+    #endregion
+
+
+    #region MATRIX
+
     // Matrix
     [Header("Matrix")]
     [Tooltip("The text that will be displayed on the columns of the matrix (commonly, could be Likert scale values, or numerical ratings)")]
     public string[] matrixColumnTexts;
     [Tooltip("The text that will be displayed on the rows of the matrix (commonly, could be individual questions)")]
     public string[] matrixRowTexts;
+
+    #endregion
 
 }

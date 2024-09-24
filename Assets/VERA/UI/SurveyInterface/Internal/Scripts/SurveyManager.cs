@@ -1,14 +1,12 @@
-using Codice.Client.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Windows;
-using static System.Net.Mime.MediaTypeNames;
 using static UnityEngine.GraphicsBuffer;
 
+[RequireComponent(typeof(SurveyInterfaceIO))]
 public class SurveyManager : MonoBehaviour
 {
 
@@ -17,8 +15,9 @@ public class SurveyManager : MonoBehaviour
     #region VARIABLES
 
     // Overall survey
-    [SerializeField] private SurveyInfo activeSurvey;
+    private SurveyInfo activeSurvey;
     private bool surveyStarted = false;
+    private SurveyInterfaceIO surveyInterfaceIo;
 
     // References
     [Header("References")]
@@ -60,23 +59,27 @@ public class SurveyManager : MonoBehaviour
     // Matrix
     [SerializeField] private MatrixOptions matrixOptionsPrefab;
     [SerializeField] private GameObject matrixSeparatorLine;
-    [SerializeField] private ContentSizeFitter matrixContentFitter;
     private MatrixOptions matrixOptions;
 
     // Start and results
-    private string[] savedSelections;
+    private string[] surveyResults;
 
     // Animations
     private float swipeTime = 0.25f;
 
+    // Accessibility
+    private VLAT_MenuNavigator vlatMenuNav;
+    private int infLoopDetect = 0;
+
     #endregion
 
 
-    #region MONOBEHAVIOUR
+    #region SETUP
 
-    // Start, hide the canvas
-    private void Start()
+    // Sets up the manager and its various components
+    public void Setup()
     {
+        surveyInterfaceIo = GetComponent<SurveyInterfaceIO>();
         managerCanvGroup = managerCanvas.GetComponent<CanvasGroup>();
         questionTextCanvGroup = questionText.GetComponent<CanvasGroup>();
         countDisplayCanvGroup = countDisplay.GetComponent<CanvasGroup>();
@@ -87,11 +90,12 @@ public class SurveyManager : MonoBehaviour
 
         moreOptionsNotif.SetActive(false);
 
+        vlatMenuNav = gameObject.AddComponent<VLAT_MenuNavigator>();
+        vlatMenuNav.ManualSetup();
+        vlatMenuNav.onChangeHighlightedItem.AddListener(OnHighlightedItemChanged);
+
         managerCanvGroup.alpha = 0f;
         managerCanvas.gameObject.SetActive(false);
-
-        // TESTING, TODO: delete
-        BeginSurvey(activeSurvey);
     }
 
     #endregion
@@ -112,7 +116,7 @@ public class SurveyManager : MonoBehaviour
         activeSurvey = surveyToBegin;
 
         currentQuestionIndex = -2;
-        savedSelections = new string[activeSurvey.surveyQuestions.Count];
+        surveyResults = new string[activeSurvey.surveyQuestions.Count];
         moreOptionsNotifNeeded = new bool[activeSurvey.surveyQuestions.Count];
 
         for (int i = 0; i < moreOptionsNotifNeeded.Length; i++) 
@@ -126,13 +130,14 @@ public class SurveyManager : MonoBehaviour
 
         countDisplayCanvGroup.alpha = 0f;
 
+        vlatMenuNav.StartMenuNavigation();
+
         NextQuestion();
     }
 
      // Completes the currently active survey and hide the window
     public void CompleteSurvey()
     {
-        // TODO, functionality for pushing results or showing an end screen
         currentQuestionIndex++;
         StartCoroutine(DisplayEndScreen());
     }
@@ -140,6 +145,8 @@ public class SurveyManager : MonoBehaviour
     // Hides the window by fading it out, then deactivating it
     private IEnumerator HideWindow()
     {
+        vlatMenuNav.StopMenuNavigation();
+
         LeanTween.cancel(managerCanvGroup.gameObject);
         managerCanvGroup.LeanAlpha(0f, swipeTime);
 
@@ -187,7 +194,7 @@ public class SurveyManager : MonoBehaviour
     }
 
     // Updates the question/response area sizes based on their content
-    private void UpdateQuestionResponseSizes()
+    private void UpdateQuestionResponseSizes(bool overrideNextButtonActivation)
     {
         // Get desired heights
         LayoutRebuilder.ForceRebuildLayoutImmediate(questionText.rectTransform);
@@ -210,11 +217,17 @@ public class SurveyManager : MonoBehaviour
             responseScrollRect.verticalNormalizedPosition = 1f;
         });
 
-        StartCoroutine(CheckForMoreOptionsNotif(desiredResponseHeight));
+        StartCoroutine(CheckForMoreOptionsNotif(desiredResponseHeight, overrideNextButtonActivation));
+    }
+
+    // Override of above
+    private void UpdateQuestionResponseSizes()
+    {
+        UpdateQuestionResponseSizes(false);
     }
 
     // Displays the notification that there are more options if there are
-    private IEnumerator CheckForMoreOptionsNotif(float desiredResponseHeight)
+    private IEnumerator CheckForMoreOptionsNotif(float desiredResponseHeight, bool overrideNextButtonActivation)
     {
         // Wait for content to update
         yield return null;
@@ -224,14 +237,16 @@ public class SurveyManager : MonoBehaviour
         // If check is not needed, we are okay.
         if (currentQuestionIndex >= 0 && currentQuestionIndex < activeSurvey.surveyQuestions.Count && !moreOptionsNotifNeeded[currentQuestionIndex])
         {
-            nextButton.interactable = true;
+            if (!overrideNextButtonActivation)
+                nextButton.interactable = true;
             yield break;
         }
 
         // If content fits, we are okay.
         if (responseContentParent.GetComponent<RectTransform>().sizeDelta.y - 15f < desiredResponseHeight)
         {
-            nextButton.interactable = true;
+            if (!overrideNextButtonActivation)
+                nextButton.interactable = true;
             yield break;
         }
 
@@ -255,7 +270,9 @@ public class SurveyManager : MonoBehaviour
         LeanTween.cancel(moreOptionsCanvGroup.gameObject);
         moreOptionsCanvGroup.alpha = 0f;
         moreOptionsNotif.gameObject.SetActive(false);
-        nextButton.interactable = true;
+
+        if (!overrideNextButtonActivation)
+            nextButton.interactable = true;
     }
 
     #endregion
@@ -276,10 +293,22 @@ public class SurveyManager : MonoBehaviour
         }
 
         if (currentQuestionIndex == -1)
-            nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Next";
+        {
+            TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
+            nextText.text = "Next";
+        }
+            
 
         // Check for end screen
-        if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count)
+        if (currentQuestionIndex == activeSurvey.surveyQuestions.Count)
+        {
+            currentQuestionIndex++;
+            StartCoroutine(UploadSurvey());
+            return;
+        }
+
+        // Check for upload complete screen
+        if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count + 1)
         {
             StartCoroutine(HideWindow());
             return;
@@ -314,7 +343,10 @@ public class SurveyManager : MonoBehaviour
     {
         // Check if we are on the final screen
         if (currentQuestionIndex == activeSurvey.surveyQuestions.Count)
-            nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Next";
+        {
+            TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
+            nextText.text = "Next";
+        }
         else
             SaveCurrentQuestionResults();
 
@@ -358,6 +390,8 @@ public class SurveyManager : MonoBehaviour
         // Set the question count
         countDisplay.text = "" + (currentQuestionIndex + 1) + " / " + activeSurvey.surveyQuestions.Count;
 
+        vlatMenuNav.ClearNavigatableItems();
+
         // Setup new question based on question type
         switch (activeSurvey.surveyQuestions[currentQuestionIndex].questionType)
         {
@@ -386,6 +420,9 @@ public class SurveyManager : MonoBehaviour
         previousButton.interactable = true;
 
         FadeInSwipeAnims();
+
+        vlatMenuNav.AddNavigatableItem(previousButton.gameObject);
+        vlatMenuNav.AddNavigatableItem(nextButton.gameObject);
     }
 
     // Removes all displayed response options
@@ -412,7 +449,10 @@ public class SurveyManager : MonoBehaviour
     // Displays the survey's start screen
     private IEnumerator DisplayStartScreen()
     {
-        nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Start";
+        vlatMenuNav.ClearNavigatableItems();
+
+        TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
+        nextText.text = "Start";
 
         previousButton.interactable = false;
 
@@ -439,12 +479,17 @@ public class SurveyManager : MonoBehaviour
         FadeInSwipeAnimsNoCount();
 
         surveyStarted = true;
+
+        vlatMenuNav.AddNavigatableItem(nextButton.gameObject);
     }
 
     // Displays the survey's end screen
     private IEnumerator DisplayEndScreen()
     {
-        nextButton.transform.GetChild(0).GetComponent<TMP_Text>().text = "Finish";
+        vlatMenuNav.ClearNavigatableItems();
+
+        TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
+        nextText.text = "Finish";
 
         FadeOutSwipeAnims();
 
@@ -455,7 +500,8 @@ public class SurveyManager : MonoBehaviour
 
         // Set the description
         TMP_Text newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
-        newBlock.text = activeSurvey.surveyEndStatement;
+        newBlock.text = activeSurvey.surveyEndStatement + "\n\nOnce you continue, your results will be uploaded, " +
+            "and you will not be able to change your survey response.";
 
         // Set the question text and update desired size
         questionText.text = "Survey complete";
@@ -465,6 +511,9 @@ public class SurveyManager : MonoBehaviour
         FadeInSwipeAnimsNoCount();
 
         previousButton.interactable = true;
+
+        vlatMenuNav.AddNavigatableItem(nextButton.gameObject);
+        vlatMenuNav.AddNavigatableItem(previousButton.gameObject);
     }
 
     #endregion
@@ -526,15 +575,81 @@ public class SurveyManager : MonoBehaviour
                 }
                 else
                 {
-                    saveString += activeIndexes[0].ToString();
+                    if (activeIndexes[0] < 0)
+                        saveString += "N/A";
+                    else
+                        saveString += activeIndexes[0].ToString();
+
                     for (int i = 1; i < activeIndexes.Count; i++)
                     {
-                        saveString += ", " + activeIndexes[i].ToString();
+                        if (activeIndexes[i] < 0)
+                            saveString += ", N/A";
+                        else
+                            saveString += ", " + activeIndexes[i].ToString();
                     }
                 }
                 break;
         }
-        savedSelections[currentQuestionIndex] = saveString;
+        surveyResults[currentQuestionIndex] = saveString;
+    }
+
+    #endregion
+
+
+    #region UPLOAD
+
+    // Calls IO to upload survey, and updates screen to notify user
+    private IEnumerator UploadSurvey()
+    {
+        vlatMenuNav.ClearNavigatableItems();
+
+        previousButton.interactable = false;
+        nextButton.interactable = false;
+
+        FadeOutSwipeAnims();
+
+        // Wait for swipe animation to complete, then remove existing options
+        yield return new WaitForSeconds(swipeTime);
+
+        RemoveDisplayedOptions();
+
+        // Set the description
+        TMP_Text newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
+        newBlock.text = "Please wait for survey results to finish uploading...";
+
+        // Set the question text and update desired size
+        questionText.text = "Survey results are being uploaded";
+
+        UpdateQuestionResponseSizes(true);
+
+        FadeInSwipeAnimsNoCount();
+
+        // Wait for IO to finish uploading (and ensure we have waited at least 1.5 seconds overall)
+        float currentTime = Time.time;
+        yield return StartCoroutine(surveyInterfaceIo.OutputSurveyResults(activeSurvey, surveyResults));
+        if (currentTime + 1.5f > Time.time)
+        {
+            yield return new WaitForSeconds((currentTime + 1.5f) - Time.time);
+        }
+
+        // Display that upload has completed
+        FadeOutSwipeAnims();
+        yield return new WaitForSeconds(swipeTime);
+        RemoveDisplayedOptions();
+
+        newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
+        newBlock.text = "Survey results have finished uploading. You may now safely exit the survey.";
+        questionText.text = "Survey results uploaded";
+
+        UpdateQuestionResponseSizes(true);
+        FadeInSwipeAnimsNoCount();
+
+        // Allow exit
+        TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
+        nextText.text = "Exit";
+        nextButton.interactable = true;
+
+        vlatMenuNav.AddNavigatableItem(nextButton.gameObject);
     }
 
     #endregion
@@ -553,10 +668,10 @@ public class SurveyManager : MonoBehaviour
 
         List<int> optionsWhichNeedToBeOn = new List<int>();
         // If data exists from previous response entry, load which options were selected
-        if (savedSelections[currentQuestionIndex] != null && savedSelections[currentQuestionIndex] != "")
+        if (surveyResults[currentQuestionIndex] != null && surveyResults[currentQuestionIndex] != "")
         {
             // Split the string by commas and trim spaces from each part
-            string[] parts = savedSelections[currentQuestionIndex].Split(',')
+            string[] parts = surveyResults[currentQuestionIndex].Split(',')
                              .Select(part => part.Trim())
                              .ToArray();
 
@@ -577,6 +692,7 @@ public class SurveyManager : MonoBehaviour
             SurveySelectionOption newOption = GameObject.Instantiate(optionPrefab, responseContentParent);
             newOption.Setup(this, i, activeSurvey.surveyQuestions[currentQuestionIndex].selectionOptions[i]);
             choiceOptions.Add(newOption);
+            vlatMenuNav.AddNavigatableItem(newOption.GetNavigatableItem());
 
             if (optionsWhichNeedToBeOn.Contains(i))
             {
@@ -644,10 +760,10 @@ public class SurveyManager : MonoBehaviour
     {
         float savedSliderVal = 0f;
         // If data exists from previous response entry, load slider value
-        if (savedSelections[currentQuestionIndex] != null && savedSelections[currentQuestionIndex] != "")
+        if (surveyResults[currentQuestionIndex] != null && surveyResults[currentQuestionIndex] != "")
         {
             // Split the string by commas and trim spaces from each part
-            string[] parts = savedSelections[currentQuestionIndex].Split(',')
+            string[] parts = surveyResults[currentQuestionIndex].Split(',')
                              .Select(part => part.Trim())
                              .ToArray();
 
@@ -665,6 +781,8 @@ public class SurveyManager : MonoBehaviour
         newSlider.SetLeftText(activeSurvey.surveyQuestions[currentQuestionIndex].leftSliderText);
         newSlider.SetRightText(activeSurvey.surveyQuestions[currentQuestionIndex].rightSliderText);
         activeSliderOption = newSlider;
+
+        vlatMenuNav.AddNavigatableItem(newSlider.GetNavigatableItem());
     }
 
     #endregion
@@ -678,10 +796,10 @@ public class SurveyManager : MonoBehaviour
     {
         int[] selectedMatrixOptions = null;
         // If data exists from previous response entry, load which options were selected
-        if (savedSelections[currentQuestionIndex] != null && savedSelections[currentQuestionIndex] != "")
+        if (surveyResults[currentQuestionIndex] != null && surveyResults[currentQuestionIndex] != "")
         {
             // Split the string by commas and trim spaces from each part
-            string[] parts = savedSelections[currentQuestionIndex].Split(',')
+            string[] parts = surveyResults[currentQuestionIndex].Split(',')
                              .Select(part => part.Trim())
                              .ToArray();
 
@@ -715,10 +833,80 @@ public class SurveyManager : MonoBehaviour
             matrixOptions.AddNewOptionArea(rowText, numCols, activeIdx);
         }
 
+        List<GameObject> navItems = matrixOptions.GetNavigatableItems();
+
+        foreach (GameObject go in navItems)
+        {
+            vlatMenuNav.AddNavigatableItem(go);
+        }
     }
 
 
     #endregion
 
+
+    #region ACCESSIBILITY
+
+    public void OnHighlightedItemChanged()
+    {
+        infLoopDetect++;
+        if (infLoopDetect > 1000)
+        {
+            return;
+        }
+
+        GameObject highlightedItem = vlatMenuNav.GetHighlightedItem();
+        // If highlighted item exists and is within the scroll view...
+        if (highlightedItem != null && highlightedItem.transform.IsChildOf(responseContentParent))
+        {
+            // Get whether the highlighted item is "visible" within the scroll view
+            RectTransform viewport = responseScrollRect.viewport;
+            RectTransform content = responseScrollRect.content;    // The scrollable content area
+            RectTransform targetRect = highlightedItem.GetComponent<RectTransform>();
+
+            // Get the world position of the target's corners
+            Vector3[] targetCorners = new Vector3[4];
+            targetRect.GetWorldCorners(targetCorners);
+
+            // Get the world position of the viewport's corners
+            Vector3[] viewportCorners = new Vector3[4];
+            viewport.GetWorldCorners(viewportCorners);
+
+            // Check if any of the target's corners are inside the viewport
+            bool isAbove = (targetCorners[0].y) > viewportCorners[1].y;
+            bool isBelow = (targetCorners[1].y) < viewportCorners[0].y;
+
+            if (isAbove)
+            {
+                if (responseContentParent.childCount > 0 && highlightedItem.transform.IsChildOf(responseContentParent.GetChild(0)))
+                {
+                    responseScrollRect.verticalNormalizedPosition = 1f;
+                }
+                else
+                {
+                    responseScrollRect.verticalNormalizedPosition += .2f;
+                    OnHighlightedItemChanged();
+                }
+            }
+            else if (isBelow)
+            {
+                if (responseContentParent.childCount > 0 && highlightedItem.transform.IsChildOf(responseContentParent.GetChild(responseContentParent.childCount - 1)))
+                {
+                    responseScrollRect.verticalNormalizedPosition = 0f;
+                }
+                else
+                {
+                    responseScrollRect.verticalNormalizedPosition -= .2f;
+                    OnHighlightedItemChanged();
+                }
+            }
+            else
+            {
+                infLoopDetect = 0;
+            }
+        }
+    }
+
+    #endregion
 
 }

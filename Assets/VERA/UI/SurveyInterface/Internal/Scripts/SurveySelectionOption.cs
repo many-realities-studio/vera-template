@@ -40,8 +40,15 @@ public class SurveySelectionOption : MonoBehaviour, IPointerClickHandler, IPoint
         surveyManager = _surveyManager;
         sortId = _sortId;
         selectionText.text = displayText;
+        selectionToggle.onValueChanged.AddListener(ToggleExternalClick);
 
         ResetStyling();
+    }
+
+    // Gets navigatable item of this option, for use in VLAT
+    public GameObject GetNavigatableItem()
+    {
+        return selectionToggle.gameObject;
     }
 
     #endregion
@@ -100,6 +107,20 @@ public class SurveySelectionOption : MonoBehaviour, IPointerClickHandler, IPoint
                 selectionImg.color = baseHoveredBackgroundColor;
             else
                 selectionImg.color = baseBackgroundColor;
+        }
+    }
+
+    #endregion
+
+
+    #region TOGGLE EXTERNAL CLICK
+
+    // Called when an external toggle click was activated (e.g., not through IPointerClick)
+    public void ToggleExternalClick(bool isOn)
+    {
+        if (isOn != isSelected)
+        {
+            ToggleSelection();
         }
     }
 

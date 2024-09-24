@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class VLAT_MenuNavigator : MonoBehaviour
@@ -16,10 +17,17 @@ public class VLAT_MenuNavigator : MonoBehaviour
     //[SerializeField] private bool autoFindItems = false;
     [Tooltip("A list of the interactable UI elements in this menu, in the order as they should be navigated")]
     [SerializeField] private List<GameObject> orderedMenuItems = new List<GameObject>();
+    [SerializeField] private bool hideVLATMenuOnNav = true;
 
     private bool controllingMenu;
     private int currentlyHighlightedItem = 0;
     private NewMenuNavigation menuNavigation;
+
+    private bool allowExit;
+
+    public UnityEvent onChangeHighlightedItem;
+
+    private bool loggedVlatMenuWarning = false;
 
 
     #endregion
@@ -28,14 +36,48 @@ public class VLAT_MenuNavigator : MonoBehaviour
     #region MONOBEHAVIOUR
 
 
+    // Manually sets up the menu navigator
+    //--------------------------------------//
+    public void ManualSetup()
+    //--------------------------------------//
+    {
+        if (menuNavigation == null)
+            menuNavigation = FindObjectOfType<NewMenuNavigation>();
+        if (onChangeHighlightedItem == null)
+            onChangeHighlightedItem = new UnityEvent();
+
+        if (menuNavigation == null)
+        {
+            LogVlatNotPresentWarning();
+            return;
+        }
+
+    } // END ManualSetup
+
+
     // Start
     //--------------------------------------//
     private void Start()
     //--------------------------------------//
     {
-        menuNavigation = FindObjectOfType<NewMenuNavigation>();
+        ManualSetup();
     
     } // END Start
+
+
+    // Logs that the VLAT menu is not present (but only does so once to not spam)
+    //--------------------------------------//
+    private void LogVlatNotPresentWarning()
+    //--------------------------------------//
+    {
+        if (!loggedVlatMenuWarning)
+        {
+            loggedVlatMenuWarning = true;
+            Debug.LogWarning("VLAT_MenuNavigator is in scene, but no VLAT_Menu prefab is present. " +
+                "Add a VLAT_Menu prefab to enable menu navigation.");
+        }
+        
+    } // END LogVlatNotPresentWarning
 
 
     #endregion
@@ -46,19 +88,33 @@ public class VLAT_MenuNavigator : MonoBehaviour
 
     // Starts menu navigation
     //--------------------------------------//
-    public void StartMenuNavigation()
+    public void StartMenuNavigation(bool allowExitNav)
     //--------------------------------------//
     {
-        //if (autoFindItems)
-        //{
-            // TODO
-        //}
+        if (menuNavigation == null)
+        {
+            menuNavigation = FindObjectOfType<NewMenuNavigation>();
+            if (menuNavigation == null)
+            {
+                LogVlatNotPresentWarning();
+                return;
+            }
+        }
 
-        menuNavigation.StartNavigateExternalMenu(this);
+        allowExit = allowExitNav;
+
+        menuNavigation.StartNavigateExternalMenu(this, hideVLATMenuOnNav);
         currentlyHighlightedItem = 0;
         HighlightItem(currentlyHighlightedItem);
 
     } // END StartMenuNavigation
+
+
+    // Override of above
+    public void StartMenuNavigation()
+    {
+        StartMenuNavigation(false);
+    }
 
 
     // Stops menu navigation
@@ -66,10 +122,78 @@ public class VLAT_MenuNavigator : MonoBehaviour
     public void StopMenuNavigation()
     //--------------------------------------//
     {
+        if (menuNavigation == null)
+        {
+            menuNavigation = FindObjectOfType<NewMenuNavigation>();
+            if (menuNavigation == null)
+            {
+                LogVlatNotPresentWarning();
+                return;
+            }
+        }
         StopHighlightItem(currentlyHighlightedItem);
         menuNavigation.StopNavigateExternalMenu();
 
     } // END StopMenuNavigation
+
+
+    #endregion
+
+
+    #region SET NAVIGATABLE ITEMS
+
+
+    // Gets the currently highlighted item
+    //--------------------------------------//
+    public GameObject GetHighlightedItem()
+    //--------------------------------------//
+    {
+        if (currentlyHighlightedItem < 0 || currentlyHighlightedItem >= orderedMenuItems.Count || menuNavigation == null)
+            return null;
+        else
+            return orderedMenuItems[currentlyHighlightedItem];
+
+    } // END GetHighlightedItem
+
+
+    // Sets the navigatable items of this menu
+    //--------------------------------------//
+    public void SetNavigatableItems(List<GameObject> navigatableItems)
+    //--------------------------------------//
+    {
+        StopHighlightItem(currentlyHighlightedItem);
+        orderedMenuItems = navigatableItems;
+        currentlyHighlightedItem = 0;
+        HighlightItem(currentlyHighlightedItem);
+
+    } // END SetNavigatableItems
+
+
+    // Clears the navigatable items of this menu
+    //--------------------------------------//
+    public void ClearNavigatableItems()
+    //--------------------------------------//
+    {
+        StopHighlightItem(currentlyHighlightedItem);
+        orderedMenuItems.Clear();
+        currentlyHighlightedItem = 0;
+
+    } // END ClearNavigatableItems
+
+
+    // Adds an item to the navigatable items of this menu
+    //--------------------------------------//
+    public void AddNavigatableItem(GameObject itemToAdd)
+    //--------------------------------------//
+    {
+        orderedMenuItems.Add(itemToAdd);
+        if (orderedMenuItems.Count == 1)
+        {
+            currentlyHighlightedItem = 0;
+            HighlightItem(currentlyHighlightedItem);
+        }
+        
+    } // END AddNavigatableItems
 
 
     #endregion
@@ -104,7 +228,7 @@ public class VLAT_MenuNavigator : MonoBehaviour
         StopHighlightItem(currentlyHighlightedItem);
         currentlyHighlightedItem--;
 
-        if (currentlyHighlightedItem <= 0)
+        if (currentlyHighlightedItem < 0)
         {
             currentlyHighlightedItem = orderedMenuItems.Count - 1;
         }
@@ -119,6 +243,9 @@ public class VLAT_MenuNavigator : MonoBehaviour
     public void SelectItem()
     //--------------------------------------//
     {
+        if (currentlyHighlightedItem < 0 || currentlyHighlightedItem >= orderedMenuItems.Count || menuNavigation == null)
+            return;
+
         Toggle toggleCheck = orderedMenuItems[currentlyHighlightedItem].GetComponent<Toggle>();
         Slider sliderCheck = orderedMenuItems[currentlyHighlightedItem].GetComponent<Slider>();
         Button buttonCheck = orderedMenuItems[currentlyHighlightedItem].GetComponent<Button>();
@@ -190,7 +317,8 @@ public class VLAT_MenuNavigator : MonoBehaviour
         }
         else if (buttonCheck != null)
         {
-            buttonCheck.onClick.Invoke();
+            if (buttonCheck.interactable)
+                buttonCheck.onClick.Invoke();
         }
         else
         {
@@ -205,7 +333,8 @@ public class VLAT_MenuNavigator : MonoBehaviour
     public void BackButton()
     //--------------------------------------//
     {
-        StopMenuNavigation();
+        if (allowExit)
+            StopMenuNavigation();
 
     } // END BackButton
 
@@ -231,6 +360,9 @@ public class VLAT_MenuNavigator : MonoBehaviour
     private void HighlightItem(int itemToHighlight)
     //--------------------------------------//
     {
+        if (itemToHighlight < 0 || itemToHighlight >= orderedMenuItems.Count || menuNavigation == null)
+            return;
+
         HighlightableTab newTab = null;
 
         Toggle toggleCheck = orderedMenuItems[itemToHighlight].GetComponent<Toggle>();
@@ -262,7 +394,7 @@ public class VLAT_MenuNavigator : MonoBehaviour
             RectTransform targetTrans = sliderCheck.gameObject.GetComponent<RectTransform>();
             RectTransform tabTrans = newTab.GetComponent<RectTransform>();
             //tabTrans.sizeDelta = targetTrans.sizeDelta + new Vector2(10, 10);
-            tabTrans.localPosition = targetTrans.localPosition;
+            tabTrans.position = targetTrans.position;
         }
         else if (buttonCheck != null)
         {
@@ -278,6 +410,7 @@ public class VLAT_MenuNavigator : MonoBehaviour
         }
 
         newTab.StartHighlight();
+        onChangeHighlightedItem?.Invoke();
 
     } // END HighlightItem
 
@@ -287,6 +420,9 @@ public class VLAT_MenuNavigator : MonoBehaviour
     private void StopHighlightItem(int itemToStopHighlight)
     //--------------------------------------//
     {
+        if (itemToStopHighlight < 0 || itemToStopHighlight >= orderedMenuItems.Count || menuNavigation == null)
+            return;
+
         HighlightableTab tab = orderedMenuItems[itemToStopHighlight].transform.GetChild(0).GetComponent<HighlightableTab>();
         
         if (tab != null)

@@ -16,9 +16,13 @@ MonoBehaviour:
   surveyDescription: This is a short description of the survey, which will be shown
     on the survey's first page. Survey takers may press the "Start" button in the
     bottom right to begin the survey.
-  surveyEndStatement: This is a short ending statement of the survey, which will
-    be shown on the survey's last page. Survey takers may press the "Finish" button
+  surveyEndStatement: 'This is a short ending statement of the survey, which will
+    be shown on the survey''s last page. Survey takers may press the "Finish" button
     in the bottom right to complete the survey.
+
+    The line below (beginning with
+    "Once you continue"...) will always automatically be included in the end statement,
+    to let survey takers know they can continue to upload their results.'
   surveyQuestions:
   - questionType: 0
     questionText: This is an example of a multiple choice question. Only one choice
@@ -83,11 +87,4 @@ MonoBehaviour:
     - The navigatability of the survey
     - The survey's ease of use
     - The survey's conveyance of information
-    - The survey's visual appeal
-    - The survey's visual appeal
-    - The survey's visual appeal
-    - The survey's visual appeal
-    - The survey's visual appeal
-    - The survey's visual appeal
-    - The survey's visual appeal
     - The survey's visual appeal

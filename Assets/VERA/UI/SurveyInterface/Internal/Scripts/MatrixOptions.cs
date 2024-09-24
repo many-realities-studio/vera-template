@@ -43,6 +43,23 @@ public class MatrixOptions : MonoBehaviour
         matrixOptionAreas.Add(newOptionArea);
     }
 
+    // Gets a list of navigatable items in this matrix, for use in VLAT
+    public List<GameObject> GetNavigatableItems()
+    {
+        List<GameObject> ret = new List<GameObject>();
+
+        foreach (MatrixOptionArea optionArea in matrixOptionAreas)
+        {
+            List<GameObject> optionObjs = optionArea.GetNavigatableItems();
+            foreach (GameObject go in optionObjs)
+            {
+                ret.Add(go);
+            }
+        }
+
+        return ret;
+    }
+
     #endregion
 
 

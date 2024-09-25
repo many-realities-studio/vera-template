@@ -30,10 +30,32 @@ public class VERALogger : MonoBehaviour
   private const int cacheSizeLimit = 100; // Adjust the limit as needed
   private const float flushInterval = 5.0f; // Adjust the interval as needed
   private float timeSinceLastFlush = 0f;
+  public UnityEvent onBeginFileUpload = new UnityEvent();
   public UnityEvent onFileUploaded = new UnityEvent();
+  public UnityEvent onFileUploadExited = new UnityEvent();
   public UnityEvent onInitialized = new UnityEvent();
   public bool initialized;
 
+  private UnityWebRequest uploadWebRequest;
+  private UploadHandler uploadHandler;
+  public float UploadProgress
+  {
+    get
+    {
+      if (uploadWebRequest == null || uploadWebRequest.isDone) return -1;
+      return uploadWebRequest.uploadProgress;
+    }
+  }
+
+  public int uploadFileSizeBytes
+  {
+    get
+    {
+      if (uploadWebRequest == null || uploadWebRequest.isDone) return -1;
+      return uploadWebRequest.uploadHandler.data.Length;
+    }
+  }
+  
   public IEnumerator TestConnection()
   {
     string host = development ? host_dev : host_live;
@@ -118,15 +140,21 @@ public class VERALogger : MonoBehaviour
 
   public void SubmitCSV()
   {
-    Debug.Log(filePath);
-    StartCoroutine(SubmitCSVCoroutine(filePath));
+    SubmitCSV(filePath);
   }
   public void SubmitCSV(string file)
   {
     Debug.Log(file);
-    StartCoroutine(SubmitCSVCoroutine(file));
+    StartCoroutine(SubmitCSVWrapper(file));
   }
 
+  private IEnumerator SubmitCSVWrapper(string file)
+  {
+    onBeginFileUpload?.Invoke();
+    yield return StartCoroutine(SubmitCSVCoroutine(file));
+    onFileUploadExited?.Invoke();
+  }
+  
   private IEnumerator SubmitCSVCoroutine(string file)
   {
     string host = development ? host_dev : host_live;
@@ -180,15 +208,15 @@ public class VERALogger : MonoBehaviour
     form.AddField("participant_UUID", participant_UUID);
     form.AddBinaryData("file", fileData, study_UUID + "-" + file_participant_UDID + ".csv", "text/csv");
 
-    UnityWebRequest www = UnityWebRequest.Post(url, form);
-    www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+    uploadWebRequest = UnityWebRequest.Post(url, form);
+    uploadWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
     if (!simulateOffline)
     {
-      yield return www.SendWebRequest();
+      yield return uploadWebRequest.SendWebRequest();
     }
-    if (!simulateOffline && www.result == UnityWebRequest.Result.Success)
+    if (!simulateOffline && uploadWebRequest.result == UnityWebRequest.Result.Success)
     {
-      Debug.Log("Upload complete! Response: " + www.downloadHandler.text);
+      Debug.Log("Upload complete! Response: " + uploadWebRequest.downloadHandler.text);
       // Append the uploaded file name to the "uploaded.txt" file as a new line
       var uploaded = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
       if (!Array.Exists(uploaded, element => element == Path.GetFileName(file)))
@@ -208,7 +236,7 @@ public class VERALogger : MonoBehaviour
     }
     else
     {
-      Debug.LogError("Upload failed: " + www.error);
+      Debug.LogError("Upload failed: " + uploadWebRequest.error);
     }
   }
 

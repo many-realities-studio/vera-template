@@ -72,6 +72,7 @@ public class NewMenuNavigation : MonoBehaviour
         mainAreaManager = FindObjectOfType<MainAreaManager>();
         mainAreaManager.SwapMainAreaToMode(UiState.Look);
         menuParentCanvasGroup = GetComponent<CanvasGroup>();
+        menuParentCanvasGroup.alpha = 1f;
 
         uiInputDistributor = FindObjectOfType<UiInputDistributor>();
         selectionController = FindObjectOfType<SelectionController>();

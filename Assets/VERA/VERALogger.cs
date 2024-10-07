@@ -142,14 +142,18 @@ public class VERALogger : MonoBehaviour
   {
     SubmitCSV(filePath);
   }
-  public void SubmitCSV(string file)
+  public void SubmitCSV(string file, bool flushOnSubmit = false)
   {
     Debug.Log(file);
-    StartCoroutine(SubmitCSVWrapper(file));
+    StartCoroutine(SubmitCSVWrapper(file, flushOnSubmit));
   }
 
-  private IEnumerator SubmitCSVWrapper(string file)
+  private IEnumerator SubmitCSVWrapper(string file, bool flushOnSubmit = false)
   {
+    if (flushOnSubmit)
+    {
+      Flush();
+    }
     onBeginFileUpload?.Invoke();
     yield return StartCoroutine(SubmitCSVCoroutine(file));
     onFileUploadExited?.Invoke();
@@ -401,12 +405,13 @@ public class VERALogger : MonoBehaviour
     if (cache.Count >= cacheSizeLimit || timeSinceLastFlush >= flushInterval)
     {
       Flush();
-      timeSinceLastFlush = 0f;
     }
   }
 
   private void Flush()
   {
+    timeSinceLastFlush = 0f;
+
     if (cache.Count == 0)
     {
       return;

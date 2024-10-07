@@ -338,6 +338,27 @@ public class SettingsManager : MonoBehaviour
     public void OnMenuOpacityToggleChange()
     //--------------------------------------//
     {
+        float op = GetMenuOpacity();
+
+        if (menuNav == null)
+        {
+            menuNav = FindObjectOfType<NewMenuNavigation>();
+        }
+
+        if (menuNav != null)
+        {
+            menuNav.GetComponent<CanvasGroup>().alpha = op;
+            menuOpacityText.text = "" + Mathf.FloorToInt(op * 100f) + "%";
+        }
+
+    } // END OnChange
+
+
+    // Gets menu opacity
+    //--------------------------------------//
+    public float GetMenuOpacity()
+    //--------------------------------------//
+    {
         float op = 1f;
 
         switch (menuOpacitySlider.value)
@@ -365,18 +386,9 @@ public class SettingsManager : MonoBehaviour
                 break;
         }
 
-        if (menuNav == null)
-        {
-            menuNav = FindObjectOfType<NewMenuNavigation>();
-        }
+        return op;
 
-        if (menuNav != null)
-        {
-            menuNav.GetComponent<CanvasGroup>().alpha = op;
-            menuOpacityText.text = "" + Mathf.FloorToInt(op * 100f) + "%";
-        }
-
-    } // END OnChange
+    } // END GetMenuOpacity
 
 
     #endregion

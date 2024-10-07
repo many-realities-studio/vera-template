@@ -50,6 +50,7 @@ public class VLAT_Options : MonoBehaviour
         SetupMovement();
         SetupInteraction();
         SetupSettings();
+        SetupMenu();
         
     } // END Start
 
@@ -103,6 +104,43 @@ public class VLAT_Options : MonoBehaviour
             Debug.LogError("No VLAT SettingsManager could be found in scene; VLAT settings functionality will not work.");
 
     } // END SetupSettings
+
+
+    // Sets up menu
+    //--------------------------------------//
+    private void SetupMenu()
+    //--------------------------------------//
+    {
+        NewMenuNavigation menuNav = FindObjectOfType<NewMenuNavigation>();
+        menuNav.Setup();
+
+    } // END SetupMenu
+
+
+    #endregion
+
+
+    #region ON / OFF
+
+
+    // Hides the VLAT menu
+    //--------------------------------------//
+    public void HideVlatMenu()
+    //--------------------------------------//
+    {
+        FindObjectOfType<NewMenuNavigation>().HideVlatMenu();
+
+    } // END HideVlatMenu
+
+
+    // Shows the VLAT menu
+    //--------------------------------------//
+    public void ShowVlatMenu()
+    //--------------------------------------//
+    {
+        FindObjectOfType<NewMenuNavigation>().ShowVlatMenu();
+
+    } // END ShowVlatMenu
 
 
     #endregion

@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc565593072d34044985a0ed765fa22c, type: 3}
+  m_Name: ExampleSurveyInfo
+  m_EditorClassIdentifier: 
+  surveyName: Example Survey
+  surveyDescription: This is a short description of the survey, which will be shown
+    on the survey's first page. Survey takers may press the "Start" button in the
+    bottom right to begin the survey.
+  surveyEndStatement: 'This is a short ending statement of the survey, which will
+    be shown on the survey''s last page. Survey takers may press the "Finish" button
+    in the bottom right to complete the survey.
+
+    The line below (beginning with
+    "Once you continue"...) will always automatically be included in the end statement,
+    to let survey takers know they can continue to upload their results.'
+  surveyQuestions:
+  - questionType: 0
+    questionText: This is an example of a multiple choice question. Only one choice
+      may be selected from a multiple choice survey question.
+    selectionOptions:
+    - This is the first option
+    - This is the second option
+    - This option has a lot of text, and will likely spillover to multiple lines;
+      when formatting questions, they can be as long or as short as desired
+    - This is the final option
+    leftSliderText: 
+    rightSliderText: 
+    matrixColumnTexts: []
+    matrixRowTexts: []
+  - questionType: 1
+    questionText: This is an example selection question. Multiple options may be
+      selected when responding to a selection question.
+    selectionOptions:
+    - This is option #1
+    - This is option #2
+    - There may be as many or as few options as you wish
+    - The survey taker may select as many of them or as few of them as they wish
+    - If you have a lot of options...
+    - They will eventually take up the whole page...
+    - Once this point is reached...
+    - Response options will begin to spillover...
+    - And the user is notified via a flashing notification
+    - Survey takers cannot continue the survey until they have viewed all options,
+      even if they are off the page
+    - In this way, survey takers are garunteed to have seen all response options
+    leftSliderText: 
+    rightSliderText: 
+    matrixColumnTexts: []
+    matrixRowTexts: []
+  - questionType: 2
+    questionText: This is an example of a slider question. Text may be added to the
+      left and right of the slider (indicating what the left/right of the slider
+      represents).
+    selectionOptions: []
+    leftSliderText: Low
+    rightSliderText: High
+    matrixColumnTexts: []
+    matrixRowTexts: []
+  - questionType: 3
+    questionText: This is a matrix question. Parameters for the rows and columns
+      may be given. Columns often represent some signifier or rating (e.g., numbers
+      representing rank scale, or short descriptios for a Likert Scale question),
+      while rows often represent individual questions. An example is given below,
+      where the question text here might read "Fill out the table below according
+      to your experience."
+    selectionOptions: []
+    leftSliderText: 
+    rightSliderText: 
+    matrixColumnTexts:
+    - Very poor
+    - Poor
+    - Neither poor nor good
+    - Good
+    - Very good
+    matrixRowTexts:
+    - The survey's overall layout
+    - The navigatability of the survey
+    - The survey's ease of use
+    - The survey's conveyance of information
+    - The survey's visual appeal

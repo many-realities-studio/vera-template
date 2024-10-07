@@ -35,10 +35,12 @@ public class NewMenuNavigation : MonoBehaviour
     [SerializeField] private ButtonTabberManager interactSubTabberManager;
     [SerializeField] private VLAT_MenuNavigator settingsNavigator;
     [SerializeField] private CanvasGroup settingsCanvasGroup;
+    private CanvasGroup menuParentCanvasGroup;
 
     private UiInputDistributor uiInputDistributor;
     private SelectionController selectionController;
     private InteractionsMenuManager interactionsMenuManager;
+    private SettingsManager settingsManager;
 
     public HighlightableTab toggleHighlightPrefab;
     public HighlightableTab sliderHighlightPrefab;
@@ -59,9 +61,9 @@ public class NewMenuNavigation : MonoBehaviour
     #region SETUP
 
 
-    // Start
+    // Setup
     //--------------------------------------//
-    void Start()
+    public void Setup()
     //--------------------------------------//
     {
         folderTabsManager = FindObjectOfType<FolderTabsManager>();
@@ -69,15 +71,18 @@ public class NewMenuNavigation : MonoBehaviour
         folderTabsManager.InitialStart();
         mainAreaManager = FindObjectOfType<MainAreaManager>();
         mainAreaManager.SwapMainAreaToMode(UiState.Look);
+        menuParentCanvasGroup = GetComponent<CanvasGroup>();
+        menuParentCanvasGroup.alpha = 1f;
 
         uiInputDistributor = FindObjectOfType<UiInputDistributor>();
         selectionController = FindObjectOfType<SelectionController>();
         interactionsMenuManager = FindObjectOfType<InteractionsMenuManager>();
+        settingsManager = FindObjectOfType<SettingsManager>();
 
         settingsStartPosY = transform.localPosition.y;
         defaultLocalY = transform.GetChild(0).localPosition.y;
 
-    } // END Start
+    } // END Setup
 
 
     #endregion
@@ -364,11 +369,13 @@ public class NewMenuNavigation : MonoBehaviour
 
     // Sets whether we are navigating an external menu
     //--------------------------------------//
-    public void StartNavigateExternalMenu(VLAT_MenuNavigator menuToNavigate)
+    public void StartNavigateExternalMenu(VLAT_MenuNavigator menuToNavigate, bool hideMenu)
     //--------------------------------------//
     {
         navigatingExternalMenu = true;
         externalMenuNavigator = menuToNavigate;
+        if (hideMenu)
+            HideVlatMenu();
 
     } // END SetNavigatingExternalMenu
 
@@ -385,7 +392,29 @@ public class NewMenuNavigation : MonoBehaviour
             CloseSettings();
         }
 
+        ShowVlatMenu();
+
     } // END StopNavigateExternalMenu
+
+
+    // Hides the VLAT menu
+    //--------------------------------------//
+    public void HideVlatMenu()
+    //--------------------------------------//
+    {
+        menuParentCanvasGroup.alpha = 0f;
+
+    } // END HideVlatMenu
+
+
+    // Shows the VLAT menu
+    //--------------------------------------//
+    public void ShowVlatMenu()
+    //--------------------------------------//
+    {
+        menuParentCanvasGroup.alpha = settingsManager.GetMenuOpacity();
+
+    } // END ShowVlatMenu
 
 
     #endregion
@@ -411,7 +440,7 @@ public class NewMenuNavigation : MonoBehaviour
 
         mainAreaManager.HideCanvGroups();
 
-        settingsNavigator.StartMenuNavigation();        
+        settingsNavigator.StartMenuNavigation(true);        
 
     } // END OpenSettings
 

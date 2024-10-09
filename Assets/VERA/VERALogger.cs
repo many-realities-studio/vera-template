@@ -45,7 +45,7 @@ public class VERALogger : MonoBehaviour
   public bool initialized;
 
   private UnityWebRequest uploadWebRequest;
-  private UnityWebRequest progressUploadWebRequest;
+
   private UploadHandler uploadHandler;
   public float UploadProgress
   {
@@ -86,7 +86,7 @@ public class VERALogger : MonoBehaviour
   public void Awake()
   {
     // Testing to see if function to upload progress to web server works.
-    OnButtonChangeProgress();
+    // OnButtonChangeProgress();
 
     // Test if we can reach the server
     StartCoroutine(TestConnection());
@@ -164,10 +164,13 @@ public class VERALogger : MonoBehaviour
 
     using (UnityWebRequest www = UnityWebRequest.Put(progressURL, myData))
     {
-      www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
-      yield return www.SendWebRequest();
+      if (!simulateOffline)
+      {
+        www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+        yield return www.SendWebRequest();
+      }
 
-      if (www.result != UnityWebRequest.Result.Success)
+      if (!simulateOffline && www.result != UnityWebRequest.Result.Success)
       {
         Debug.Log(www.error);
       }
@@ -176,24 +179,7 @@ public class VERALogger : MonoBehaviour
         Debug.Log("Upload complete!");
       }
     }
-    /*
-    progressUploadWebRequest = UnityWebRequest.Put(progressURL, myData);
-    progressUploadWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
 
-    if (!simulateOffline)
-    {
-      Debug.Log("Attempting to update progress of Participant");
-      yield return progressUploadWebRequest.SendWebRequest();
-    }
-    if (!simulateOffline && progressUploadWebRequest.result == UnityWebRequest.Result.Success)
-    {
-      Debug.Log(progressUploadWebRequest.error);
-    }
-    else
-    {
-      Debug.Log("Progress Upload Complete");
-    }
-    */
   }
 
   public void OnButtonChangeProgress()

@@ -161,6 +161,22 @@ public class VERALogger : MonoBehaviour
     string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
 
     byte[] myData = null;
+
+    using (UnityWebRequest www = UnityWebRequest.Put(progressURL, myData))
+    {
+      www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+      yield return www.SendWebRequest();
+
+      if (www.result != UnityWebRequest.Result.Success)
+      {
+        Debug.Log(www.error);
+      }
+      else
+      {
+        Debug.Log("Upload complete!");
+      }
+    }
+    /*
     progressUploadWebRequest = UnityWebRequest.Put(progressURL, myData);
     progressUploadWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
 
@@ -177,6 +193,7 @@ public class VERALogger : MonoBehaviour
     {
       Debug.Log("Progress Upload Complete");
     }
+    */
   }
 
   public void OnButtonChangeProgress()

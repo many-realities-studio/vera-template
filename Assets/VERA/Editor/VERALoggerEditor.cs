@@ -101,7 +101,8 @@ public class VERALoggerEditor : Editor
 
       if (GUILayout.Button("Submit CSV"))
       {
-        csvWriter.SubmitCSV(csvWriter.filePath, true);
+        csvWriter.SubmitCSV(csvWriter.filePath);
+        // csvWriter.SubmitCSV(csvWriter.filePath,true);
       }
 
       if (GUILayout.Button("Clear Files"))

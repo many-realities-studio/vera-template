@@ -22,6 +22,14 @@ public class VERALogger : MonoBehaviour
   public bool simulateOffline = false;
   public bool collecting = true;
 
+  // Enum for Choosing the progress of the experiment 
+  public enum Study_Participant_Progress { recruited, accepted, waitlisted, in_experiment, terminated, ghosted, complete };
+  // https://learn.microsoft.com/en-us/dotnet/api/system.enum.tostring?view=net-8.0
+
+  // Set instance of study progress to be uploaded to server.
+  public Study_Participant_Progress progressParam = Study_Participant_Progress.recruited;
+
+
   public static VERALogger Instance;
   [HideInInspector]
   public VERAColumnDefinition columnDefinition;
@@ -37,6 +45,7 @@ public class VERALogger : MonoBehaviour
   public bool initialized;
 
   private UnityWebRequest uploadWebRequest;
+  private UnityWebRequest progressUploadWebRequest;
   private UploadHandler uploadHandler;
   public float UploadProgress
   {
@@ -55,7 +64,7 @@ public class VERALogger : MonoBehaviour
       return uploadWebRequest.uploadHandler.data.Length;
     }
   }
-  
+
   public IEnumerator TestConnection()
   {
     string host = development ? host_dev : host_live;
@@ -76,6 +85,9 @@ public class VERALogger : MonoBehaviour
 
   public void Awake()
   {
+    // Testing to see if function to upload progress to web server works.
+    OnButtonChangeProgress();
+
     // Test if we can reach the server
     StartCoroutine(TestConnection());
     if (Instance == null)
@@ -138,27 +150,59 @@ public class VERALogger : MonoBehaviour
     CreateEntry(UnityEngine.Random.Range(0, 100), fakeData.ToArray());
   }
 
+  // Function to change progress of the participant
+  public IEnumerator ChangeProgress()
+  {
+
+    // Create the Web request for the experiment progress
+    string host = development ? host_dev : host_live;
+    //string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
+
+    string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
+
+    byte[] myData = null;
+    progressUploadWebRequest = UnityWebRequest.Put(progressURL, myData);
+    progressUploadWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+
+    if (!simulateOffline)
+    {
+      Debug.Log("Attempting to update progress of Participant");
+      yield return progressUploadWebRequest.SendWebRequest();
+    }
+    if (!simulateOffline && progressUploadWebRequest.result == UnityWebRequest.Result.Success)
+    {
+      Debug.Log(progressUploadWebRequest.error);
+    }
+    else
+    {
+      Debug.Log("Progress Upload Complete");
+    }
+  }
+
+  public void OnButtonChangeProgress()
+  {
+    Debug.Log("Progress was updated");
+    StartCoroutine(ChangeProgress());
+  }
+
+
   public void SubmitCSV()
   {
     SubmitCSV(filePath);
   }
-  public void SubmitCSV(string file, bool flushOnSubmit = false)
+  public void SubmitCSV(string file)
   {
     Debug.Log(file);
-    StartCoroutine(SubmitCSVWrapper(file, flushOnSubmit));
+    StartCoroutine(SubmitCSVWrapper(file));
   }
 
-  private IEnumerator SubmitCSVWrapper(string file, bool flushOnSubmit = false)
+  private IEnumerator SubmitCSVWrapper(string file)
   {
-    if (flushOnSubmit)
-    {
-      Flush();
-    }
     onBeginFileUpload?.Invoke();
     yield return StartCoroutine(SubmitCSVCoroutine(file));
     onFileUploadExited?.Invoke();
   }
-  
+
   private IEnumerator SubmitCSVCoroutine(string file)
   {
     string host = development ? host_dev : host_live;
@@ -405,13 +449,12 @@ public class VERALogger : MonoBehaviour
     if (cache.Count >= cacheSizeLimit || timeSinceLastFlush >= flushInterval)
     {
       Flush();
+      timeSinceLastFlush = 0f;
     }
   }
 
   private void Flush()
   {
-    timeSinceLastFlush = 0f;
-
     if (cache.Count == 0)
     {
       return;

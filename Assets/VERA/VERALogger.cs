@@ -86,7 +86,7 @@ public class VERALogger : MonoBehaviour
   public void Awake()
   {
     // Testing to see if function to upload progress to web server works.
-    // OnButtonChangeProgress();
+    OnButtonChangeProgress();
 
     // Test if we can reach the server
     StartCoroutine(TestConnection());

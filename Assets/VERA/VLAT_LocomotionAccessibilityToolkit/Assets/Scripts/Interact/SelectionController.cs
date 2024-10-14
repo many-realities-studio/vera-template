@@ -183,44 +183,37 @@ public class SelectionController : MonoBehaviour
                 Collider[] objChildColliders = collider.gameObject.GetComponentsInChildren<Collider>();
                 Collider[] combinedColliders = cameraColliders.Concat(objChildColliders).ToArray();
                 RaycastHit[] hits = Physics.RaycastAll(playerCam.transform.position, directionToInteractable, Vector3.Distance(playerCam.transform.position, collider.gameObject.transform.position));
-                if (hits.Length == 1)
+
+                // If hits is 1, then we have direct line of sight on the object; add it to the list
+                if (hits.Length == 1 && hits[0].collider == collider)
                 {
-                    if (hits[0].collider == collider)
-                    {
-                        interactables.Add(collider.gameObject.GetComponent<VLAT_Interactable>());
-                    }
+                    interactables.Add(collider.gameObject.GetComponent<VLAT_Interactable>());
                 }
                 else
                 {
-                    System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
+                    // More than 1 hit between us and object.
+                    // Check for blockers hindering collision with the object
+                    bool objectBlocked = false;
+                    hits = hits.OrderBy(hit => Vector3.Distance(playerCam.transform.position, hit.point)).ToArray();
                     foreach (RaycastHit hitCollider in hits)
                     {
-                        //initializing value to false each iteration
-                        bool isIn = false;
-                        foreach (Collider c in combinedColliders)
-                        {
-                            //if the raycast object collider is one of the children colliders break loop no need to check anymore
-                            if (hitCollider.collider == c)
-                            {
-                                isIn = true;
-                                break;
-                            }
-                        }
-                        if (isIn == false)
-                        {
+                        // If collider is a child of the XR rig, ignore it (should not be considered as a "blocker"
+                        if (hitCollider.collider.transform.IsChildOf(VLAT_Options.Instance.GetXrPlayerParent().transform))
                             continue;
-                        }
-                        else if (hitCollider.collider != collider)
-                        {
-                            continue;
-                        }
+                        // If collider is the interactable in question, we can break (can ignore objects past, since array is sorted)
+                        else if (hitCollider.collider.gameObject == collider.gameObject || hitCollider.collider.transform.IsChildOf(collider.transform))
+                            break;
+                        // If collider is neither of above, it's a "blocker", and the object cannot be seen
                         else
                         {
-                            interactables.Add(collider.gameObject.GetComponent<VLAT_Interactable>());
+                            objectBlocked = true;
+                            break;
                         }
                     }
+                    // If the object is not blocked, add it to the list
+                    if (!objectBlocked)
+                        interactables.Add(collider.gameObject.GetComponent<VLAT_Interactable>());
                 }
-                //if is child of camera or child of object
             }
         }
 
@@ -375,6 +368,9 @@ public class SelectionController : MonoBehaviour
 
         foreach (VLAT_Interactable inter in interactables)
         {
+            if (inter == null)
+                continue;
+
             GameObject obj = inter.gameObject;
             if (obj.GetComponent<Outline>() != null)
             {

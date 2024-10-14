@@ -11,6 +11,8 @@ public class VLAT_Options : MonoBehaviour
     #region VARIABLES
 
 
+    public static VLAT_Options Instance;
+
     [Header("XR Player")]
     [Tooltip("The XR player's parent game object (e.g., for the XR Interaction Toolkit, the XR Origin game object)")]
     [SerializeField] private GameObject xrPlayerParent;
@@ -22,7 +24,7 @@ public class VLAT_Options : MonoBehaviour
     [Header("Movement")]
     [Tooltip("The player's default movement speed, when using VLAT movement")]
     [SerializeField] private float playerMoveSpeed = 2f;
-    
+
     [Header("Interaction")]
     [Tooltip("The maximum distance from which interactable objects may be interacted with")]
     [SerializeField] private float interactionRadius = 10f;
@@ -47,12 +49,29 @@ public class VLAT_Options : MonoBehaviour
     void Start()
     //--------------------------------------//
     {
+        SetupSingleton();
         SetupMovement();
         SetupInteraction();
         SetupSettings();
         SetupMenu();
-        
+
     } // END Start
+
+
+    // Sets up as singleton
+    //---------------------------------------//
+    private void SetupSingleton()
+    //---------------------------------------//
+    {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
+    } // END SetupSingleton
 
 
     // Sets up the movement / character controller based on options
@@ -65,7 +84,7 @@ public class VLAT_Options : MonoBehaviour
             Debug.LogError("No XR player parent given for VLAT options. Please provide one for movement to work.");
             return;
         }
-            
+
         MovementController moveControl = FindObjectOfType<MovementController>();
 
         if (moveControl != null)
@@ -141,6 +160,22 @@ public class VLAT_Options : MonoBehaviour
         FindObjectOfType<NewMenuNavigation>().ShowVlatMenu();
 
     } // END ShowVlatMenu
+
+
+    #endregion
+
+
+    #region OTHER
+
+
+    // Gets the XR player parent
+    //--------------------------------------//
+    public GameObject GetXrPlayerParent()
+    //--------------------------------------//
+    {
+        return xrPlayerParent;
+
+    } // END GetXrPlayerParent
 
 
     #endregion

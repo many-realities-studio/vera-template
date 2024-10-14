@@ -1936,7 +1936,13 @@ MonoBehaviour:
   collecting: 1
   columnDefinition: {fileID: 11400000, guid: 8da9669f4fdac1e4e879f15b87a7d679, type: 2}
   cache: []
+  onBeginFileUpload:
+    m_PersistentCalls:
+      m_Calls: []
   onFileUploaded:
+    m_PersistentCalls:
+      m_Calls: []
+  onFileUploadExited:
     m_PersistentCalls:
       m_Calls: []
   onInitialized:

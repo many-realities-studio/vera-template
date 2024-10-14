@@ -5,8 +5,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Collections;
-using System.Linq;
-using UnityEngine.UIElements;
 using UnityEngine.Events;
 
 public class VERALogger : MonoBehaviour
@@ -23,12 +21,7 @@ public class VERALogger : MonoBehaviour
   public bool collecting = true;
 
   // Enum for Choosing the progress of the experiment 
-  public enum Study_Participant_Progress { recruited, accepted, waitlisted, in_experiment, terminated, ghosted, complete };
-  // https://learn.microsoft.com/en-us/dotnet/api/system.enum.tostring?view=net-8.0
-
-  // Set instance of study progress to be uploaded to server.
-  public Study_Participant_Progress progressParam = Study_Participant_Progress.recruited;
-
+  public enum StudyParticipantProgressState { RECRUITED, ACCEPTED, WAITLISTED, IN_EXPERIMENT, TERMINATED, GHOSTED, COMPLETE };
 
   public static VERALogger Instance;
   [HideInInspector]
@@ -85,9 +78,6 @@ public class VERALogger : MonoBehaviour
 
   public void Awake()
   {
-    // Testing to see if function to upload progress to web server works.
-    OnButtonChangeProgress();
-
     // Test if we can reach the server
     StartCoroutine(TestConnection());
     if (Instance == null)
@@ -151,14 +141,15 @@ public class VERALogger : MonoBehaviour
   }
 
   // Function to change progress of the participant
-  public IEnumerator ChangeProgress()
+  public IEnumerator ChangeProgress(StudyParticipantProgressState state)
   {
 
     // Create the Web request for the experiment progress
     string host = development ? host_dev : host_live;
     //string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
 
-    string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
+    // server expects enums in lower case
+    string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + state.ToString().ToLower();
 
     byte[] myData = null;
 
@@ -179,13 +170,12 @@ public class VERALogger : MonoBehaviour
         Debug.Log("Upload complete!");
       }
     }
-
   }
 
-  public void OnButtonChangeProgress()
+  public void ChangeParticipantProgressState(StudyParticipantProgressState state)
   {
-    Debug.Log("Progress was updated");
-    StartCoroutine(ChangeProgress());
+    Debug.Log("Participant progress state was updated");
+    StartCoroutine(ChangeProgress(state));
   }
 
 
@@ -193,14 +183,19 @@ public class VERALogger : MonoBehaviour
   {
     SubmitCSV(filePath);
   }
-  public void SubmitCSV(string file)
+  public void SubmitCSV(string file, bool flushOnSubmit = false)
   {
     Debug.Log(file);
-    StartCoroutine(SubmitCSVWrapper(file));
+    StartCoroutine(SubmitCSVWrapper(file, flushOnSubmit));
   }
 
-  private IEnumerator SubmitCSVWrapper(string file)
+  private IEnumerator SubmitCSVWrapper(string file, bool flushOnSubmit = false)
   {
+    if (flushOnSubmit)
+    {
+      Flush();
+    }
+    
     onBeginFileUpload?.Invoke();
     yield return StartCoroutine(SubmitCSVCoroutine(file));
     onFileUploadExited?.Invoke();
@@ -452,12 +447,13 @@ public class VERALogger : MonoBehaviour
     if (cache.Count >= cacheSizeLimit || timeSinceLastFlush >= flushInterval)
     {
       Flush();
-      timeSinceLastFlush = 0f;
     }
   }
 
   private void Flush()
   {
+    timeSinceLastFlush = 0f;
+    
     if (cache.Count == 0)
     {
       return;

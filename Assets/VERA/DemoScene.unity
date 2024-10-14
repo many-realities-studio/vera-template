@@ -1125,11 +1125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e63c53de868b28941947d5fedf7fe7ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3MDYxNzYyMzE0NThiMTg1ODA4ZWEyNSIsImZpcnN0TmFtZSI6IkxhbSIsImxhc3ROYW1lIjoiTmd1eWVuIiwiZW1haWwiOiJsYTgxNTc5NEB1Y2YuZWR1IiwiaWF0IjoxNzI4NDk5MzQ5LCJleHAiOjE3Mjg1MjgxNDl9.Ha9qw8d3-CMdNREjug03VRdcCxEj0jUbGerMOBG7rg8
-  study_UUID: 6706ce9f035b8061b19c7d5f
+  API_KEY: 
+  study_UUID: 
   filePath: 
-  participant_UUID: be4ed8aec3bc4d2db6b7470f4c18036e
-  development: 1
+  participant_UUID: 
+  development: 0
   simulateOffline: 0
   collecting: 1
   progressParam: 6

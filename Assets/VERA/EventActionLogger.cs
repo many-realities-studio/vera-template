@@ -6,10 +6,16 @@ public class EventActionLogger : MonoBehaviour
 {
 
     [SerializeField] private GameObject targetObject;
+    [SerializeField] private bool onlyAllowOneLogForEntry = false;
+    private bool eventAlreadyLogged = false;
 
-    // Update is called once per frame
+    // Logs an event
     public void LogEvent(int eventId)
     {
+        if (onlyAllowOneLogForEntry)
+            if (eventAlreadyLogged)
+                return;
+
         if (VERALogger.Instance.initialized && VERALogger.Instance.collecting)
         {
             VERALogger.Instance.CreateEntry(
@@ -19,6 +25,7 @@ public class EventActionLogger : MonoBehaviour
               targetObject.transform
             );
 
+            eventAlreadyLogged = true;
         }
     }
 

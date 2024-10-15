@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
-public class SurveyManager : MonoBehaviour
+public class DemoSurveyManager : MonoBehaviour
 {
 
     // SurveyManager manages a single survey
@@ -16,7 +16,7 @@ public class SurveyManager : MonoBehaviour
     // Overall survey
     private SurveyInfo activeSurvey;
     private bool surveyStarted = false;
-    private SurveyInterfaceIO surveyInterfaceIo;
+    private DemoSurveyInterfaceIO surveyInterfaceIo;
 
     // References
     [Header("References")]
@@ -44,12 +44,12 @@ public class SurveyManager : MonoBehaviour
     private bool[] moreOptionsNotifNeeded;
 
     // Selection and multiple choice
-    [SerializeField] private SurveySelectionOption multipleChoiceOptionPrefab;
-    [SerializeField] private SurveySelectionOption selectionOptionPrefab;
+    [SerializeField] private DemoSurveySelectionOption multipleChoiceOptionPrefab;
+    [SerializeField] private DemoSurveySelectionOption selectionOptionPrefab;
     [SerializeField] private TMP_Text textAreaPrefab;
-    private List<SurveySelectionOption> choiceOptions;
-    private List<SurveySelectionOption> selectedOptions; // (Selection)
-    private SurveySelectionOption selectedOption; // (Multiple choice)
+    private List<DemoSurveySelectionOption> choiceOptions;
+    private List<DemoSurveySelectionOption> selectedOptions; // (Selection)
+    private DemoSurveySelectionOption selectedOption; // (Multiple choice)
 
     // Slider
     [SerializeField] private SurveySliderOption sliderOptionPrefab;
@@ -70,6 +70,8 @@ public class SurveyManager : MonoBehaviour
     private VLAT_MenuNavigator vlatMenuNav;
     private int infLoopDetect = 0;
 
+    [SerializeField] private UnityEvent onSurveyExit;
+
     #endregion
 
 
@@ -78,7 +80,7 @@ public class SurveyManager : MonoBehaviour
     // Sets up the manager and its various components
     public void Setup()
     {
-        surveyInterfaceIo = GetComponent<SurveyInterfaceIO>();
+        surveyInterfaceIo = GetComponent<DemoSurveyInterfaceIO>();
         managerCanvGroup = managerCanvas.GetComponent<CanvasGroup>();
         questionTextCanvGroup = questionText.GetComponent<CanvasGroup>();
         countDisplayCanvGroup = countDisplay.GetComponent<CanvasGroup>();
@@ -118,12 +120,12 @@ public class SurveyManager : MonoBehaviour
         surveyResults = new string[activeSurvey.surveyQuestions.Count];
         moreOptionsNotifNeeded = new bool[activeSurvey.surveyQuestions.Count];
 
-        for (int i = 0; i < moreOptionsNotifNeeded.Length; i++) 
+        for (int i = 0; i < moreOptionsNotifNeeded.Length; i++)
             moreOptionsNotifNeeded[i] = true;
 
         selectedOption = null;
         if (selectedOptions == null)
-            selectedOptions = new List<SurveySelectionOption>();
+            selectedOptions = new List<DemoSurveySelectionOption>();
         else
             selectedOptions.Clear();
 
@@ -134,7 +136,7 @@ public class SurveyManager : MonoBehaviour
         NextQuestion();
     }
 
-     // Completes the currently active survey and hide the window
+    // Completes the currently active survey and hide the window
     public void CompleteSurvey()
     {
         currentQuestionIndex++;
@@ -144,6 +146,8 @@ public class SurveyManager : MonoBehaviour
     // Hides the window by fading it out, then deactivating it
     private IEnumerator HideWindow()
     {
+        onSurveyExit?.Invoke();
+
         vlatMenuNav.StopMenuNavigation();
 
         LeanTween.cancel(managerCanvGroup.gameObject);
@@ -296,13 +300,12 @@ public class SurveyManager : MonoBehaviour
             TMP_Text nextText = nextButton.transform.GetComponentInChildren<TMP_Text>();
             nextText.text = "Next";
         }
-            
+
 
         // Check for end screen
         if (currentQuestionIndex == activeSurvey.surveyQuestions.Count)
         {
-            currentQuestionIndex++;
-            StartCoroutine(UploadSurvey());
+            StartCoroutine(HideWindow());
             return;
         }
 
@@ -364,7 +367,7 @@ public class SurveyManager : MonoBehaviour
             currentQuestionIndex--;
             return;
         }
-                
+
         // Decrement to previous question
         currentQuestionIndex--;
 
@@ -499,8 +502,7 @@ public class SurveyManager : MonoBehaviour
 
         // Set the description
         TMP_Text newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
-        newBlock.text = activeSurvey.surveyEndStatement + "\n\nOnce you continue, your results will be uploaded, " +
-            "and you will not be able to change your survey response.";
+        newBlock.text = activeSurvey.surveyEndStatement;
 
         // Set the question text and update desired size
         questionText.text = "Survey complete";
@@ -555,7 +557,7 @@ public class SurveyManager : MonoBehaviour
                     saveString += selectedOptions[0].sortId;
                     for (int i = 1; i < selectedOptions.Count; i++)
                     {
-                        saveString += ", " + selectedOptions[i].sortId; 
+                        saveString += ", " + selectedOptions[i].sortId;
                     }
                 }
                 break;
@@ -657,11 +659,11 @@ public class SurveyManager : MonoBehaviour
     #region SELECTION / MULTIPLE CHOICE
 
     // Sets up multiple choice or selection question based on current question index
-    private void SetupChoiceOrSelection(SurveySelectionOption optionPrefab)
+    private void SetupChoiceOrSelection(DemoSurveySelectionOption optionPrefab)
     {
         // Clear choice options
         if (choiceOptions == null)
-            choiceOptions = new List<SurveySelectionOption>();
+            choiceOptions = new List<DemoSurveySelectionOption>();
         else
             choiceOptions.Clear();
 
@@ -688,7 +690,7 @@ public class SurveyManager : MonoBehaviour
         for (i = 0; i < activeSurvey.surveyQuestions[currentQuestionIndex].selectionOptions.Length; i++)
         {
             // Spawn and setup new response option
-            SurveySelectionOption newOption = GameObject.Instantiate(optionPrefab, responseContentParent);
+            DemoSurveySelectionOption newOption = GameObject.Instantiate(optionPrefab, responseContentParent);
             newOption.Setup(this, i, activeSurvey.surveyQuestions[currentQuestionIndex].selectionOptions[i]);
             choiceOptions.Add(newOption);
             vlatMenuNav.AddNavigatableItem(newOption.GetNavigatableItem());
@@ -701,7 +703,7 @@ public class SurveyManager : MonoBehaviour
     }
 
     // Called when an option is clicked; update selected options
-    public void OptionWasClicked(SurveySelectionOption option)
+    public void OptionWasClicked(DemoSurveySelectionOption option)
     {
         // Multiple choice, only one option can be active at a time
         if (activeSurvey.surveyQuestions[currentQuestionIndex].questionType == SurveyQuestionInfo.SurveyQuestionType.MultipleChoice)

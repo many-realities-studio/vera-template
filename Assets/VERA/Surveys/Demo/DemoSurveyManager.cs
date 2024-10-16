@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Newtonsoft.Json;
 
 public class DemoSurveyManager : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class DemoSurveyManager : MonoBehaviour
     // Overall survey
     private SurveyInfo activeSurvey;
     private bool surveyStarted = false;
-    private DemoSurveyInterfaceIO surveyInterfaceIo;
+    // private DemoSurveyInterfaceIO surveyInterfaceIo;
 
     // References
     [Header("References")]
@@ -80,7 +81,7 @@ public class DemoSurveyManager : MonoBehaviour
     // Sets up the manager and its various components
     public void Setup()
     {
-        surveyInterfaceIo = GetComponent<DemoSurveyInterfaceIO>();
+        // surveyInterfaceIo = GetComponent<DemoSurveyInterfaceIO>();
         managerCanvGroup = managerCanvas.GetComponent<CanvasGroup>();
         questionTextCanvGroup = questionText.GetComponent<CanvasGroup>();
         countDisplayCanvGroup = countDisplay.GetComponent<CanvasGroup>();
@@ -305,16 +306,19 @@ public class DemoSurveyManager : MonoBehaviour
         // Check for end screen
         if (currentQuestionIndex == activeSurvey.surveyQuestions.Count)
         {
+            string surveyResultsString = JsonConvert.SerializeObject(new {surveyQuestions = activeSurvey.surveyQuestions, surveyResults = surveyResults});
+            Debug.Log(surveyResults);
+            VERALogger.Instance.CreateEntry(1, surveyResultsString);
             StartCoroutine(HideWindow());
             return;
         }
 
-        // Check for upload complete screen
-        if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count + 1)
-        {
-            StartCoroutine(HideWindow());
-            return;
-        }
+        // // Check for upload complete screen
+        // if (currentQuestionIndex >= activeSurvey.surveyQuestions.Count + 1)
+        // {
+        //     StartCoroutine(HideWindow());
+        //     return;
+        // }
 
         previousButton.interactable = true;
 
@@ -627,19 +631,19 @@ public class DemoSurveyManager : MonoBehaviour
 
         // Wait for IO to finish uploading (and ensure we have waited at least 1.5 seconds overall)
         float currentTime = Time.time;
-        yield return StartCoroutine(surveyInterfaceIo.OutputSurveyResults(activeSurvey, surveyResults));
-        if (currentTime + 1.5f > Time.time)
-        {
-            yield return new WaitForSeconds((currentTime + 1.5f) - Time.time);
-        }
+        // yield return StartCoroutine(surveyInterfaceIo.OutputSurveyResults(activeSurvey, surveyResults));
 
+        // if (currentTime + 1.5f > Time.time)
+        // {
+        //     yield return new WaitForSeconds((currentTime + 1.5f) - Time.time);
+        // }
         // Display that upload has completed
         FadeOutSwipeAnims();
         yield return new WaitForSeconds(swipeTime);
         RemoveDisplayedOptions();
 
         newBlock = GameObject.Instantiate(textAreaPrefab, responseContentParent);
-        newBlock.text = "Survey results have finished uploading. You may now safely exit the survey.";
+        newBlock.text = "Survey results have been logged. You may now safely exit the survey.";
         questionText.text = "Survey results uploaded";
 
         UpdateQuestionResponseSizes(true);

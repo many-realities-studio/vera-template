@@ -2,14 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(DemoSurveyManager))]
 public class DemoSurveyInitializer : MonoBehaviour
 {
-    [SerializeField] private DemoSurveyManager surveyManager;
+    private DemoSurveyManager surveyManager;
     [SerializeField] private SurveyInfo surveyInfo;
     [SerializeField] private bool beginSurveyOnStart = false;
 
     void Start()
     {
+        surveyManager = GetComponent<DemoSurveyManager>();
+        surveyManager.Setup();
         if (beginSurveyOnStart)
             StartCoroutine(BeginSurveyCoroutine());
     }

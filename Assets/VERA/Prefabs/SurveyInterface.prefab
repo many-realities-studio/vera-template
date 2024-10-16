@@ -1209,7 +1209,7 @@ GameObject:
   - component: {fileID: 6782288732233708691}
   - component: {fileID: 22766347002921583}
   m_Layer: 0
-  m_Name: DemoSurveyInterface
+  m_Name: SurveyInterface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1260,6 +1260,9 @@ MonoBehaviour:
   sliderOptionPrefab: {fileID: 3039016264559949973, guid: de83c99a8fc8a4348b54b0d57976e37b, type: 3}
   matrixOptionsPrefab: {fileID: 4967384743025985607, guid: ac8d5e0ab9acffd439a7ead79eb73a3c, type: 3}
   matrixSeparatorLine: {fileID: 8798014617681267978}
+  onSurveyExit:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &22766347002921583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1272,7 +1275,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0a90bd182b93134fab2513a886b5291, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  demoSurveyInfo: {fileID: 11400000, guid: fe55ef34f3e00d847a6c802c858a7465, type: 2}
+  demoSurveyInfo: {fileID: 0}
 --- !u!1 &4805694526697575508
 GameObject:
   m_ObjectHideFlags: 0

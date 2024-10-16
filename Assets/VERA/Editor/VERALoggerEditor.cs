@@ -14,7 +14,14 @@ public class VERALoggerEditor : Editor
 
   public override void OnInspectorGUI()
   {
-    DrawDefaultInspector();
+    // Display help text
+        EditorGUILayout.HelpBox(
+            "Input your API key and study UUID below.\n",
+            MessageType.Info);
+
+        // Draw default inspector
+        DrawDefaultInspector();
+        // DrawDefaultInspector();
 
     VERALogger csvWriter = (VERALogger)target;
 

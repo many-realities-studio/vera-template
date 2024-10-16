@@ -16,9 +16,9 @@ public class VERALogger : MonoBehaviour
   public string filePath = "";
   private List<VERAColumnDefinition.Column> columns = new List<VERAColumnDefinition.Column>();
   public string participant_UUID;
-  private string host_live = "https://sherlock.gaim.ucf.edu";
-  private string host_dev = "http://localhost:4001";
-  public bool development = false;
+  private string host = "https://sherlock.gaim.ucf.edu";
+  // private string host = "http://localhost:4001";
+  // bool development = false;
   public bool simulateOffline = false;
   public bool collecting = true;
 
@@ -58,7 +58,7 @@ public class VERALogger : MonoBehaviour
   
   public IEnumerator TestConnection()
   {
-    string host = development ? host_dev : host_live;
+    // string host = development ? host_dev : host_live;
     string url = host + "/api/";
     UnityWebRequest www = UnityWebRequest.Get(url);
     www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
@@ -95,7 +95,16 @@ public class VERALogger : MonoBehaviour
         if (file != "" && !Array.Exists(loadedFiles, element => element == Path.GetFileName(file)))
         {
           Debug.Log("Path exists, submitting..." + file);
+          // Check if file has more than 1 line
+          if (File.ReadLines(file).Count() > 1)
+          {
           StartCoroutine(SubmitCSVCoroutine(file));
+          }
+          else
+          {
+            // Delete the empty file
+            File.Delete(file);
+          }
         }
       }
     }
@@ -161,7 +170,7 @@ public class VERALogger : MonoBehaviour
   
   private IEnumerator SubmitCSVCoroutine(string file)
   {
-    string host = development ? host_dev : host_live;
+    // string host = development ? host_dev : host_live;
     string file_participant_UDID;
     if (file.Length > 0 && file.Contains("-"))
     {

@@ -5,8 +5,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Collections;
-using System.Linq;
-using UnityEngine.UIElements;
 using UnityEngine.Events;
 
 public class VERALogger : MonoBehaviour
@@ -21,6 +19,9 @@ public class VERALogger : MonoBehaviour
   public bool development = false;
   public bool simulateOffline = false;
   public bool collecting = true;
+
+  // Enum for Choosing the progress of the experiment 
+  public enum StudyParticipantProgressState { RECRUITED, ACCEPTED, WAITLISTED, IN_EXPERIMENT, TERMINATED, GHOSTED, COMPLETE };
 
   public static VERALogger Instance;
   [HideInInspector]
@@ -37,6 +38,7 @@ public class VERALogger : MonoBehaviour
   public bool initialized;
 
   private UnityWebRequest uploadWebRequest;
+
   private UploadHandler uploadHandler;
   public float UploadProgress
   {
@@ -55,7 +57,7 @@ public class VERALogger : MonoBehaviour
       return uploadWebRequest.uploadHandler.data.Length;
     }
   }
-  
+
   public IEnumerator TestConnection()
   {
     string host = development ? host_dev : host_live;
@@ -138,6 +140,45 @@ public class VERALogger : MonoBehaviour
     CreateEntry(UnityEngine.Random.Range(0, 100), fakeData.ToArray());
   }
 
+  // Function to change progress of the participant
+  public IEnumerator ChangeProgress(StudyParticipantProgressState state)
+  {
+
+    // Create the Web request for the experiment progress
+    string host = development ? host_dev : host_live;
+    //string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
+
+    // server expects enums in lower case
+    string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + state.ToString().ToLower();
+
+    byte[] myData = null;
+
+    using (UnityWebRequest www = UnityWebRequest.Put(progressURL, myData))
+    {
+      if (!simulateOffline)
+      {
+        www.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+        yield return www.SendWebRequest();
+      }
+
+      if (!simulateOffline && www.result != UnityWebRequest.Result.Success)
+      {
+        Debug.Log(www.error);
+      }
+      else
+      {
+        Debug.Log("Upload complete!");
+      }
+    }
+  }
+
+  public void ChangeParticipantProgressState(StudyParticipantProgressState state)
+  {
+    Debug.Log("Participant progress state was updated");
+    StartCoroutine(ChangeProgress(state));
+  }
+
+
   public void SubmitCSV()
   {
     SubmitCSV(filePath);
@@ -154,11 +195,12 @@ public class VERALogger : MonoBehaviour
     {
       Flush();
     }
+    
     onBeginFileUpload?.Invoke();
     yield return StartCoroutine(SubmitCSVCoroutine(file));
     onFileUploadExited?.Invoke();
   }
-  
+
   private IEnumerator SubmitCSVCoroutine(string file)
   {
     string host = development ? host_dev : host_live;
@@ -411,7 +453,7 @@ public class VERALogger : MonoBehaviour
   private void Flush()
   {
     timeSinceLastFlush = 0f;
-
+    
     if (cache.Count == 0)
     {
       return;

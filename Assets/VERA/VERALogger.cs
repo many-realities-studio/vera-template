@@ -146,10 +146,9 @@ public class VERALogger : MonoBehaviour
 
     // Create the Web request for the experiment progress
     string host = development ? host_dev : host_live;
-    //string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + progressParam.ToString();
 
     // server expects enums in lower case
-    string progressURL = host + "/api/progress/" + study_UUID + "/" + participant_UUID + "/" + state.ToString().ToLower();
+    string progressURL = host + "/api/" + study_UUID + "/" + participant_UUID + "/progress/" + state.ToString().ToLower();
 
     byte[] myData = null;
 
@@ -195,7 +194,7 @@ public class VERALogger : MonoBehaviour
     {
       Flush();
     }
-    
+
     onBeginFileUpload?.Invoke();
     yield return StartCoroutine(SubmitCSVCoroutine(file));
     onFileUploadExited?.Invoke();
@@ -453,7 +452,7 @@ public class VERALogger : MonoBehaviour
   private void Flush()
   {
     timeSinceLastFlush = 0f;
-    
+
     if (cache.Count == 0)
     {
       return;

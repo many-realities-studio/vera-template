@@ -154,7 +154,7 @@ public class VERALogger : MonoBehaviour
   {
 
     // Create the Web request for the experiment progress
-    string host = development ? host_dev : host_live;
+    // string host = development ? host_dev : host_live;
 
     // server expects enums in lower case
     string progressURL = host + "/api/" + study_UUID + "/" + participant_UUID + "/progress/" + state.ToString().ToLower();

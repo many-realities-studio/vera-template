@@ -17,7 +17,5 @@ MonoBehaviour:
     type: 0
   - name: eventId
     type: 1
-  - name: Info
+  - name: Message
     type: 3
-  - name: Transform
-    type: 2

@@ -1538,14 +1538,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e63c53de868b28941947d5fedf7fe7ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  API_KEY: 
-  study_UUID: 
+  API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzAxNGRkOTM5YmU5MmM0MmM0NDc0OCIsImZpcnN0TmFtZSI6IkpvaG4iLCJsYXN0TmFtZSI6Ik11cnJheSIsImVtYWlsIjoianRtQHVjZi5lZHUiLCJpYXQiOjE3Mjk0OTA5MDUsImV4cCI6MTcyOTUxOTcwNX0.KVKhvDjMShIbaErPppdyLEGzKfGuTT76cWlxcN9jzb8
+  study_UUID: 66aa69425c5a5101562c6f15
+  directoryPath: 
   filePath: 
   participant_UUID: 
   simulateOffline: 0
   collecting: 1
-  columnDefinition: {fileID: 11400000, guid: 8da9669f4fdac1e4e879f15b87a7d679, type: 2}
-  cache: []
+  columnDefinition: {fileID: 11400000, guid: c88bce193a6382c47ab017005afd2ea6, type: 2}
+  cache:
+  - 2024-10-20T18:26:22.0029764Z,45,FakeString
+  - 2024-10-20T18:29:36.6257490Z,9,FakeString
   onBeginFileUpload:
     m_PersistentCalls:
       m_Calls: []

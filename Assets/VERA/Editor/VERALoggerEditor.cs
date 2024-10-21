@@ -5,7 +5,10 @@ using UnityEngine;
 [CustomEditor(typeof(VERALogger))]
 public class VERALoggerEditor : Editor
 {
-    private SerializedProperty columnDefinitionProperty;
+  // This boolean will track whether the foldout is open or closed
+    private bool showFileUploadEvents = false;
+
+    public SerializedProperty columnDefinitionProperty;
 
     private void OnEnable()
     {
@@ -46,11 +49,32 @@ public class VERALoggerEditor : Editor
                 else
                 {
                     EditorUtility.SetDirty(csvWriter);
+
                 }
             }
+ // Create the foldout for the file upload events
+        showFileUploadEvents = EditorGUILayout.Foldout(showFileUploadEvents, "File Upload Events");
 
+        // If the foldout is open, show the events
+        if (showFileUploadEvents)
+        {
+             // Use serialized properties for UnityEvent fields to handle them properly
+            SerializedProperty onBeginFileUpload = serializedObject.FindProperty("onBeginFileUpload");
+            SerializedProperty onFileUploaded = serializedObject.FindProperty("onFileUploaded");
+            SerializedProperty onFileUploadExited = serializedObject.FindProperty("onFileUploadExited");
+            SerializedProperty onInitialized = serializedObject.FindProperty("onInitialized");
+
+            EditorGUILayout.PropertyField(onBeginFileUpload);
+            EditorGUILayout.PropertyField(onFileUploaded);
+            EditorGUILayout.PropertyField(onFileUploadExited);
+            EditorGUILayout.PropertyField(onInitialized);
+        }
+
+        // Apply changes to serialized properties
+        serializedObject.ApplyModifiedProperties();
             if (csvWriter.columnDefinition != null)
             {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("columnDefinition"));
                 // Display and edit the column definitions
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Column Definitions", EditorStyles.boldLabel);
@@ -109,19 +133,14 @@ public class VERALoggerEditor : Editor
                 {
                     csvWriter.columnDefinition.columns.Add(new VERAColumnDefinition.Column());
                 }
-                if (GUILayout.Button("Create New Column Definitions"))
-                {
-                    csvWriter.CreateColumnDefinition(true);
-                }
 
                 EditorGUILayout.Space();
-
-                if (GUILayout.Button("Simulate Entry"))
+                if (EditorApplication.isPlaying && GUILayout.Button("Simulate Entry"))
                 {
                     csvWriter.SimulateEntry();
                 }
 
-                if (GUILayout.Button("Submit CSV"))
+                if (EditorApplication.isPlaying && GUILayout.Button("Submit CSV"))
                 {
                     csvWriter.SubmitCSV(csvWriter.filePath, true);
                 }

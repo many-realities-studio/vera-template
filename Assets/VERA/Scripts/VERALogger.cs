@@ -6,16 +6,17 @@ using UnityEngine.Networking;
 using Newtonsoft.Json;
 using System.Collections;
 using UnityEngine.Events;
+using System.Linq;  // Add this line
 
 public class VERALogger : MonoBehaviour
 {
   public string API_KEY; // Add a public field to set the API key in the Inspector
   public string study_UUID;
+  public string directoryPath = "";
   public string filePath = "";
   private List<VERAColumnDefinition.Column> columns = new List<VERAColumnDefinition.Column>();
   public string participant_UUID;
-  private string host = "https://sherlock.gaim.ucf.edu";
-  // private string host = "http://localhost:4001";
+  private string host = "https://sreal.ucf.edu/vera-portal";
   // bool development = false;
   public bool simulateOffline = false;
   public bool collecting = true;
@@ -24,7 +25,8 @@ public class VERALogger : MonoBehaviour
   public enum StudyParticipantProgressState { RECRUITED, ACCEPTED, WAITLISTED, IN_EXPERIMENT, TERMINATED, GHOSTED, COMPLETE };
 
   public static VERALogger Instance;
-  [HideInInspector]
+  // [HideInInspector]
+  public string fileName;
   public VERAColumnDefinition columnDefinition;
 
   public List<string> cache = new List<string>();
@@ -80,19 +82,38 @@ public class VERALogger : MonoBehaviour
   {
     // Test if we can reach the server
     StartCoroutine(TestConnection());
+
     if (Instance == null)
     {
       Instance = this;
     }
     DontDestroyOnLoad(gameObject);
+    cache.Clear();
+    participant_UUID = Guid.NewGuid().ToString().Replace("-", "");
+
+    if (filePath == "")
+    {
+#if !UNITY_EDITOR
+      directoryPath = Application.persistentDataPath;
+#else
+      if (!Directory.Exists("Assets/VERA/Data"))
+      {
+        Directory.CreateDirectory("Assets/VERA/Data");
+      }
+      directoryPath = Path.Combine(Application.dataPath, "VERA/Data"); 
+#endif
+    }
+      filePath = Path.Combine(directoryPath, fileName + "-" + study_UUID + "-" + participant_UUID + ".csv");
+      Debug.Log("CSV File: " + filePath);
+
     // Get the list of uploaded files from the json file "uploaded.json" on the persistent data path which contains an array
     // of file names that have been uploaded to the server into "loaded"
-    if (File.Exists(Path.Combine(Application.persistentDataPath, "uploaded.txt")))
+    if (File.Exists(Path.Combine(directoryPath, "uploaded.txt")))
     {
       Debug.Log("uploaded.txt exists");
-      string[] loadedFiles = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
+      string[] loadedFiles = File.ReadAllLines(Path.Combine(directoryPath, "uploaded.txt"));
       // Loop through the files and upload all that aren't in the list
-      foreach (string file in Directory.GetFiles(Application.persistentDataPath, "*.csv"))
+      foreach (string file in Directory.GetFiles(directoryPath, "*.csv"))
       {
         if (file != "" && !Array.Exists(loadedFiles, element => element == Path.GetFileName(file)))
         {
@@ -113,7 +134,7 @@ public class VERALogger : MonoBehaviour
     else
     {
       Debug.Log("uploaded.txt does not exist, creating it");
-      File.Create(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
+      File.Create(Path.Combine(directoryPath, "uploaded.txt"));
     }
     Initialize();
     // Do not destroy on scene change
@@ -127,11 +148,15 @@ public class VERALogger : MonoBehaviour
     {
       if (column.name != "ts" && column.name != "eventId")
       {
-
+        Debug.Log("Creating simulated entry for " + column.name + " type " + column.type);
         switch (column.type)
         {
           case VERAColumnDefinition.DataType.String:
+            Debug.Log("Adding fakedata " + column.name);
             fakeData.Add("FakeString");
+            break;
+          case VERAColumnDefinition.DataType.Date:
+            fakeData.Add(DateTime.UtcNow.ToString("o"));
             break;
           case VERAColumnDefinition.DataType.Number:
             fakeData.Add(UnityEngine.Random.Range(0, 100));
@@ -175,7 +200,7 @@ public class VERALogger : MonoBehaviour
       }
       else
       {
-        Debug.Log("Upload complete!");
+        Debug.Log("Updated Progress to " + state.ToString());
       }
     }
   }
@@ -194,7 +219,9 @@ public class VERALogger : MonoBehaviour
   public void SubmitCSV(string file, bool flushOnSubmit = false)
   {
     Debug.Log(file);
+    collecting = false;
     StartCoroutine(SubmitCSVWrapper(file, flushOnSubmit));
+    ChangeParticipantProgressState(StudyParticipantProgressState.COMPLETE);
   }
 
   private IEnumerator SubmitCSVWrapper(string file, bool flushOnSubmit = false)
@@ -209,91 +236,100 @@ public class VERALogger : MonoBehaviour
     onFileUploadExited?.Invoke();
   }
 
-  private IEnumerator SubmitCSVCoroutine(string file)
-  {
-    // string host = development ? host_dev : host_live;
+private IEnumerator SubmitCSVCoroutine(string file)
+{
+    // Extracting participant UDID from file name
     string file_participant_UDID;
     if (file.Length > 0 && file.Contains("-"))
     {
-      Debug.Log(file);
-      var basename = Path.GetFileName(file);
-      file_participant_UDID = basename.Split('-')[1].Split('.')[0];
-      Debug.Log(file_participant_UDID);
+        Debug.Log(file);
+        var basename = Path.GetFileName(file);
+        file_participant_UDID = basename.Split('-')[2].Split('.')[0];
+        Debug.Log(file_participant_UDID);
     }
     else
     {
-      Debug.LogError("Invalid file name");
-      yield break;
+        Debug.LogError("Invalid file name");
+        yield break;
     }
+
+    // Prepare the upload URL
     string url = host + "/api/logs/" + study_UUID + "/" + file_participant_UDID;
-    Debug.Log("Submitting to url" + url);
+    Debug.Log("Submitting to URL: " + url);
+
+    // Attempt to read the file with a retry mechanism for sharing violation
     byte[] fileData = null;
     bool fileReadSuccess = false;
-
-    // Retry mechanism to handle sharing violation
     for (int i = 0; i < 3; i++)
     {
-      try
-      {
-        Debug.Log("Reading file: " + file);
-        fileData = File.ReadAllBytes(file);
-        fileReadSuccess = true;
-        break;
-      }
-      catch (IOException ex)
-      {
-        Debug.LogWarning($"Attempt {ex.Message} {i + 1}: Failed to read file due to sharing violation. Retrying...");
-      }
+        try
+        {
+            Debug.Log("Reading file: " + file);
+            fileData = File.ReadAllBytes(file);
+            fileReadSuccess = true;
+            break;
+        }
+        catch (IOException ex)
+        {
+            Debug.LogWarning($"Attempt {ex.Message} {i + 1}: Failed to read file due to sharing violation. Retrying...");
+        }
 
-      if (!fileReadSuccess)
-      {
-        yield return new WaitForSeconds(0.1f); // Add a small delay before retrying
-      }
+        if (!fileReadSuccess)
+        {
+            yield return new WaitForSeconds(0.1f); // Small delay before retrying
+        }
     }
 
     if (!fileReadSuccess)
     {
-      Debug.LogError("Failed to read the file after multiple attempts.");
-      yield break;
+        Debug.LogError("Failed to read the file after multiple attempts.");
+        yield break;
     }
 
+    // Prepare the form for submission
     WWWForm form = new WWWForm();
     form.AddField("study_UUID", study_UUID);
-    form.AddField("participant_UUID", participant_UUID);
+    form.AddField("participant_UUID", file_participant_UDID);
     form.AddBinaryData("file", fileData, study_UUID + "-" + file_participant_UDID + ".csv", "text/csv");
 
+    // Create the UnityWebRequest and configure it
     uploadWebRequest = UnityWebRequest.Post(url, form);
     uploadWebRequest.SetRequestHeader("Authorization", "Bearer " + API_KEY);
+    uploadWebRequest.timeout = 300; // Set the timeout to 300 seconds (5 minutes)
+
     if (!simulateOffline)
     {
-      yield return uploadWebRequest.SendWebRequest();
+        yield return uploadWebRequest.SendWebRequest(); // Wait for the request to complete
     }
+
+    // Check the result
     if (!simulateOffline && uploadWebRequest.result == UnityWebRequest.Result.Success)
     {
-      Debug.Log("Upload complete! Response: " + uploadWebRequest.downloadHandler.text);
-      // Append the uploaded file name to the "uploaded.txt" file as a new line
-      var uploaded = File.ReadAllLines(Path.Combine(Application.persistentDataPath, "uploaded.txt"));
-      if (!Array.Exists(uploaded, element => element == Path.GetFileName(file)))
-      {
+        Debug.Log("Upload complete! Response: " + uploadWebRequest.downloadHandler.text);
 
-        File.AppendAllText(Path.Combine(Application.persistentDataPath, "uploaded.txt"), Path.GetFileName(file) + Environment.NewLine);
-        Debug.Log("Updated uploaded.txt");
-      }
-      // Print out uploaded.txt
-      Debug.Log(File.ReadAllText(Path.Combine(Application.persistentDataPath, "uploaded.txt")));
-      onFileUploaded?.Invoke();
+        // Append to uploaded.txt
+        var uploaded = File.ReadAllLines(Path.Combine(directoryPath, "uploaded.txt"));
+        if (!Array.Exists(uploaded, element => element == Path.GetFileName(file)))
+        {
+            File.AppendAllText(Path.Combine(directoryPath, "uploaded.txt"), Path.GetFileName(file) + Environment.NewLine);
+            Debug.Log("Updated uploaded.txt");
+        }
 
+        // Print the contents of uploaded.txt
+        Debug.Log(File.ReadAllText(Path.Combine(directoryPath, "uploaded.txt")));
+
+        // Trigger any on-file-uploaded actions
+        onFileUploaded?.Invoke();
     }
     else if (simulateOffline)
     {
-      Debug.Log("Simulated offline mode, not uploading file");
+        Debug.Log("Simulated offline mode, not uploading file");
     }
     else
     {
-      Debug.LogError("Upload failed: " + uploadWebRequest.error);
+        Debug.LogError("Upload failed: " + uploadWebRequest.error);
     }
-  }
-
+}
   private bool IsFileLocked(FileInfo file)
   {
     FileStream stream = null;
@@ -361,11 +397,6 @@ public class VERALogger : MonoBehaviour
 
   public void Initialize()
   {
-    participant_UUID = Guid.NewGuid().ToString().Replace("-", "");
-    if (filePath == "")
-    {
-      filePath = Path.Combine(Application.persistentDataPath, study_UUID + "-" + participant_UUID + ".csv");
-    }
 
     using (StreamWriter writer = new StreamWriter(filePath))
     {
@@ -392,9 +423,10 @@ public class VERALogger : MonoBehaviour
     {
       return;
     }
-    if (values.Length != columns.Count - 2)
+    if (values.Length != columnDefinition.columns.Count - 2)
     {
-      Debug.LogError("Values count does not match columns count. values" + values.Length + " cols " + columns.Count);
+      Debug.LogError("Values count does not match columns count. values: " + values.Length + ", cols: " + columns.Count 
+        + ", columnDefinition.columns.Count: " + columnDefinition.columns.Count);
       return;
     }
 
@@ -402,12 +434,24 @@ public class VERALogger : MonoBehaviour
     // Add timestamp first.
     entry.Add(DateTime.UtcNow.ToString("o"));
     entry.Add(Convert.ToString(eventId));
+    if (columns.Count < 2) {
+      VERAColumnDefinition.Column column = columnDefinition.columns[0];
+      columns.Add(column);
+      column = columnDefinition.columns[1];
+      columns.Add(column);
 
+    }
     for (int i = 0; i < values.Length; i++)
     {
       object value = values[i];
-      VERAColumnDefinition.Column column = columns[i + 2];
-
+      // If column doesn't exist, add it:
+      VERAColumnDefinition.Column column;
+      if(columns.Count <= i + 2) {
+        column = columnDefinition.columns[i+2];
+        columns.Add(column);
+      } else {
+        column = columns[i+2];
+      }
       string formattedValue = "";
       switch (column.type)
       {
@@ -479,7 +523,6 @@ public class VERALogger : MonoBehaviour
 
   private string EscapeForCsv(string value)
   {
-    Debug.Log(value);
     if (string.IsNullOrEmpty(value))
     {
       return "\"\"";

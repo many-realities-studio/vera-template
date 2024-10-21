@@ -17,6 +17,8 @@ public class DemoTelemetryLogger : MonoBehaviour
     private void Start()
     {
         StartCoroutine(DirectionChangeCoroutine());
+        Debug.Log("Participant started!");
+        VERALogger.Instance.ChangeProgress(VERALogger.StudyParticipantProgressState.IN_EXPERIMENT);
     }
 
     // Update; log telemetry, and then move the object (for demonstration purposes)

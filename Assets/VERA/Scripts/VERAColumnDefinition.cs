@@ -14,11 +14,11 @@ public class VERAColumnDefinition : ScriptableObject
 
     public enum DataType
     {
-        Date,
+        String,
         Number,
         Transform,
-        String,
-        JSON
+        JSON,
+        Date
     }
 
     public List<Column> columns = new List<Column>();

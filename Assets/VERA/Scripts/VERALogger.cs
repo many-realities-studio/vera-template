@@ -22,7 +22,7 @@ public class VERALogger : MonoBehaviour
   public bool collecting = true;
 
   // Enum for Choosing the progress of the experiment 
-  public enum StudyParticipantProgressState { RECRUITED, ACCEPTED, WAITLISTED, IN_EXPERIMENT, TERMINATED, GHOSTED, COMPLETE };
+  public enum StudyParticipantProgressState { PRE_EXPERIMENT, IN_EXPERIMENT, PROCESSING, COMPLETE };
 
   public static VERALogger Instance;
   // [HideInInspector]
@@ -221,7 +221,6 @@ public class VERALogger : MonoBehaviour
     Debug.Log(file);
     collecting = false;
     StartCoroutine(SubmitCSVWrapper(file, flushOnSubmit));
-    ChangeParticipantProgressState(StudyParticipantProgressState.COMPLETE);
   }
 
   private IEnumerator SubmitCSVWrapper(string file, bool flushOnSubmit = false)

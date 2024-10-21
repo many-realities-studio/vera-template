@@ -74,6 +74,7 @@ public class VERALoggerEditor : Editor
         serializedObject.ApplyModifiedProperties();
             if (csvWriter.columnDefinition != null)
             {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("fileName"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("columnDefinition"));
                 // Display and edit the column definitions
                 EditorGUILayout.Space();
